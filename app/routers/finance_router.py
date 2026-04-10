@@ -132,13 +132,14 @@ class FinanceService:
 finance_service = FinanceService()
 
 # ========== PAGE ROUTE ==========
+# USING THE WORKING INLINE HTML (KEEPING WHAT WORKS)
 
 @router.get("/dashboard", response_class=HTMLResponse)
 async def finance_dashboard(request: Request):
     """Render the main finance dashboard"""
     data = finance_service.get_dashboard_data()
     
-    # Simple HTML response to test if template loading is the issue
+    # Working inline HTML (keep this as is - it works!)
     html_content = f"""
     <!DOCTYPE html>
     <html>
