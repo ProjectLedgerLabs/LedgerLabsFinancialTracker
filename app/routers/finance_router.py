@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 from typing import Dict, List
 from pydantic import BaseModel
 from datetime import datetime
+from app.routers.sidebar import get_sidebar_html
 import os
 
 router = APIRouter(prefix="/finance", tags=["finance"])
@@ -40,11 +41,10 @@ def render_expenses(expenses):
         '''
     return html
 
-# Schemas
+
 class IncomeUpdate(BaseModel):
     income: float
 
-# Service Layer
 class FinanceService:
     def __init__(self):
         self.monthly_income = 5000.00
@@ -164,6 +164,8 @@ async def finance_dashboard(request: Request):
     username = "User"
     if hasattr(request, "session") and request.session:
         username = request.session.get("username", "User")
+
+    sidebar_html = get_sidebar_html(active_page="dashboard")
     
     html_content = f"""
     <!DOCTYPE html>
@@ -305,73 +307,7 @@ async def finance_dashboard(request: Request):
     </head>
     <body>
         <div id="wrapper">
-            <!-- Sidebar -->
-            <nav id="sidebar" class="p-3 d-flex flex-column vh-100">
-                <h4 class="text-white mb-4 text-center py-4">FinancePlan</h4>
-                
-                <ul class="nav nav-pills flex-column gap-2 flex-grow-1">
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center active" href="/finance/dashboard">
-                            <span class="material-symbols-outlined me-2">dashboard</span>
-                            Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center active" href="/budget/">
-                            <span class="material-symbols-outlined me-2">account_balance</span>
-                            Budget
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center" href="/expenses/">
-                            <span class="material-symbols-outlined me-2">receipt</span>
-                            Expenses
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center active" href="/subscriptions/">
-                            <span class="material-symbols-outlined me-2">subscriptions</span>
-                            Subscriptions
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center active" href="/reports/">
-                            <span class="material-symbols-outlined me-2">bar_chart</span>
-                            Reports
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center" href="/savings/">
-                            <span class="material-symbols-outlined me-2">savings</span>
-                            Savings
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center" href="/calendar/">
-                            <span class="material-symbols-outlined me-2">calendar_month</span>
-                            Calendar
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center" href="/ai-assistant/">
-                            <span class="material-symbols-outlined me-2">smart_toy</span>
-                            AI Assistant
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center" href="/app">
-                            <span class="material-symbols-outlined me-2">people</span>
-                            Users
-                        </a>
-                    </li>
-                    <li class="nav-item mt-auto">
-                        <a class="nav-link d-flex align-items-center text-danger" href="/logout">
-                            <span class="material-symbols-outlined me-2">logout</span>
-                            Logout
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+            {sidebar_html}
             <div id="content">
                 <nav class="navbar navbar-expand-lg bg-white mb-4 px-3 rounded-3 shadow-sm">
                     <button class="btn btn-outline-secondary" id="menu-toggle">
