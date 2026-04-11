@@ -28,7 +28,7 @@ class UserBase(SQLModel,):
     username: str = Field(index=True, unique=True)
     email: EmailStr = Field(index=True, unique=True)
     password: str
-    # role:str = ""
+    role: str = "user"
 
 class User(UserBase, table=True):
     __tablename__ = "users"
