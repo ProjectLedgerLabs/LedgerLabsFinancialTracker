@@ -31,6 +31,7 @@ class UserBase(SQLModel,):
     # role:str = ""
 
 class User(UserBase, table=True):
+    __tablename__ = "users"
     user_id: Optional[int] = Field(default=None, primary_key=True)
     entries: list["Entry"] = Relationship(back_populates="user_rel")
     subscriptions: list["Subscription"] = Relationship(back_populates="user_rel")
@@ -45,14 +46,14 @@ class Entry (SQLModel, table=True):
     date: Optional[datetime] = None
     type: EntryType
     category_id: Optional[int] = Field(default=None, foreign_key="category.category_id")
-    user_id: Optional[int] = Field(default=None, foreign_key="user.user_id")
+    user_id: Optional[int] = Field(default=None, foreign_key="users.user_id")
 
     user_rel: Optional["User"] = Relationship(back_populates="entries")
     category_rel: Optional["Category"] = Relationship(back_populates="entries")
 
 class Subscription (SQLModel, table=True):
     subscription_id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: Optional[int] = Field(default=None, foreign_key="user.user_id")
+    user_id: Optional[int] = Field(default=None, foreign_key="users.user_id")
     name: str
     amount: float
     description: Optional[str] = None
@@ -67,7 +68,7 @@ class Subscription (SQLModel, table=True):
 class Category (SQLModel, table=True):
     category_id: Optional[int] = Field(default=None, primary_key=True)
     name: str
-    user_id: Optional[int] = Field(default=None, foreign_key="user.user_id")
+    user_id: Optional[int] = Field(default=None, foreign_key="users.user_id")
     
     entries: list["Entry"] = Relationship(back_populates="category_rel")
     subscriptions: list["Subscription"] = Relationship(back_populates="category_rel")
@@ -76,7 +77,7 @@ class Category (SQLModel, table=True):
 
 class CalendarEvent (SQLModel, table=True):
     event_id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: Optional[int] = Field(default=None, foreign_key="user.user_id")
+    user_id: Optional[int] = Field(default=None, foreign_key="users.user_id")
     type: CalendarEventType
     title: str
     description: Optional[str] = None
@@ -85,7 +86,7 @@ class CalendarEvent (SQLModel, table=True):
 
 class SavingsGoal (SQLModel, table=True):
     goal_id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: Optional[int] = Field(default=None, foreign_key="user.user_id")
+    user_id: Optional[int] = Field(default=None, foreign_key="users.user_id")
     name: str
     target_amount: float
     current_amount: float = 0.0
