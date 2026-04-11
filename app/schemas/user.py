@@ -1,4 +1,4 @@
-from app.models.user import UserBase
+from app.models.user import *
 from sqlmodel import SQLModel
 from pydantic import EmailStr
 from typing import Optional
