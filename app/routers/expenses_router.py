@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 from typing import Dict, List
 from pydantic import BaseModel
 from datetime import datetime
+from app.routers.sidebar import get_sidebar_html
 
 router = APIRouter(prefix="/expenses", tags=["expenses"])
 
@@ -101,7 +102,8 @@ async def expenses_page(request: Request):
             </div>
         </div>
         '''
-    
+    sidebar_html = get_sidebar_html(active_page ="expenses")
+
     html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -333,49 +335,7 @@ async def expenses_page(request: Request):
     </head>
     <body>
         <div id="wrapper">
-            <!-- Sidebar -->
-            <nav id="sidebar" class="p-3 d-flex flex-column vh-100">
-                <h4 class="text-white mb-4 text-center py-4">FinancePlan</h4>
-                
-                <ul class="nav nav-pills flex-column gap-2 flex-grow-1">
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center" href="/finance/dashboard">
-                            <span class="material-symbols-outlined me-2">dashboard</span>
-                            Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center active" href="/budget/">
-                            <span class="material-symbols-outlined me-2">account_balance</span>
-                            Budget
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center" href="/expenses/">
-                            <span class="material-symbols-outlined me-2">receipt</span>
-                            Expenses
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center active" href="/subscriptions/">
-                            <span class="material-symbols-outlined me-2">subscriptions</span>
-                            Subscriptions
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center" href="/app">
-                            <span class="material-symbols-outlined me-2">people</span>
-                            Users
-                        </a>
-                    </li>
-                    <li class="nav-item mt-auto">
-                        <a class="nav-link d-flex align-items-center text-danger" href="/logout">
-                            <span class="material-symbols-outlined me-2">logout</span>
-                            Logout
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+            {sidebar_html}
             
             <div id="content">
                 <!-- Top Navbar -->
