@@ -11,7 +11,7 @@ class AuthService:
         user = self.user_repo.get_by_username(username)
         if not user or not verify_password(plaintext_password=password, encrypted_password=user.password):
             return None
-        access_token = create_access_token(data={"sub": f"{user.user_id}"})
+        access_token = create_access_token(data={"sub": f"{user.id}", "role": user.role})
         return access_token
 
     def register_user(self, username: str, email: str, password: str):
