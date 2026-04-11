@@ -1,4 +1,6 @@
 from sqlmodel import SQLModel
+from app.models.user import *
+from pydantic import EmailStr
 
 class SigninRequest(SQLModel):
     username: str

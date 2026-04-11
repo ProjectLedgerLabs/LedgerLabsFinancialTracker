@@ -2,6 +2,8 @@ import logging
 from sqlmodel import SQLModel, Session, create_engine
 from app.config import get_settings
 from contextlib import contextmanager
+from app.models.user import UserBase, User, Entry, Subscription, Category, CalendarEvent, SavingsGoal
+
 
 logger = logging.getLogger(__name__)
 
