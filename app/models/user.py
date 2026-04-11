@@ -47,8 +47,8 @@ class Entry (SQLModel, table=True):
     category_id: Optional[int] = Field(default=None, foreign_key="category.category_id")
     user_id: Optional[int] = Field(default=None, foreign_key="user.user_id")
 
-    user_rel: Optional["User"] = Relationship(back_populates="entries")
-    category_rel: Optional["Category"] = Relationship(back_populates="entries")
+    user_rel = Relationship(back_populates="entries")
+    category_rel = Relationship(back_populates="entries")
 
 class Subscription (SQLModel, table=True):
     subscription_id: Optional[int] = Field(default=None, primary_key=True)
@@ -61,8 +61,8 @@ class Subscription (SQLModel, table=True):
     status: Status = Status.ACTIVE
     category_id: Optional[int] = Field(default=None, foreign_key="category.category_id")
 
-    category_rel: Optional["Category"] = Relationship(back_populates="subscriptions")
-    user_rel: Optional["User"] = Relationship(back_populates="subscriptions")
+    category_rel = Relationship(back_populates="subscriptions")
+    user_rel = Relationship(back_populates="subscriptions")
 
 class Category (SQLModel, table=True):
     category_id: Optional[int] = Field(default=None, primary_key=True)
@@ -71,7 +71,7 @@ class Category (SQLModel, table=True):
     
     entries: list["Entry"] = Relationship(back_populates="category_rel")
     subscriptions: list["Subscription"] = Relationship(back_populates="category_rel")
-    user_rel: Optional["User"] = Relationship(back_populates="categories")
+    user_rel = Relationship(back_populates="categories")
     
 
 class CalendarEvent (SQLModel, table=True):
@@ -81,7 +81,7 @@ class CalendarEvent (SQLModel, table=True):
     title: str
     description: Optional[str] = None
     date: Optional[datetime] = None
-    user_rel: Optional["User"] = Relationship(back_populates="calendar_events")
+    user_rel = Relationship(back_populates="calendar_events")
 
 class SavingsGoal (SQLModel, table=True):
     goal_id: Optional[int] = Field(default=None, primary_key=True)
@@ -91,4 +91,4 @@ class SavingsGoal (SQLModel, table=True):
     current_amount: float = 0.0
     description: Optional[str] = None
     deadline: Optional[datetime] = None
-    user_rel: Optional["User"] = Relationship(back_populates="savings_goals")
+    user_rel = Relationship(back_populates="savings_goals")
