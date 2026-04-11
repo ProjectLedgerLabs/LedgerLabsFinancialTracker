@@ -2,11 +2,12 @@ from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from typing import Dict, List
 from datetime import datetime
+from app.routers.sidebar import get_sidebar_html
 import json
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
-# SErvice Layer
+# Service Layer
 class ReportsService:
     def __init__(self):
         # Monthly spending data (last 6 months)
@@ -16,7 +17,6 @@ class ReportsService:
             "income": [5000, 5000, 5000, 5000, 5000, 5000]
         }
         
-        # Category spending data
         self.category_data = {
             "Food": 258.57,
             "Transportation": 65.00,
@@ -26,7 +26,6 @@ class ReportsService:
             "Utilities": 180.00
         }
         
-        # Subscription data
         self.subscriptions = [
             {"name": "Gym Membership", "amount": 49.99, "nextBilling": "2026-04-10"},
             {"name": "Software Subscription", "amount": 20.00, "nextBilling": "2026-04-12"},
@@ -34,12 +33,10 @@ class ReportsService:
             {"name": "Music Streaming", "amount": 9.99, "nextBilling": "2026-04-20"}
         ]
         
-        # Monthly comparison data
         self.current_month_spending = 2800.00
         self.previous_month_spending = 3100.00
         self.average_monthly_spending = 3433.33
         
-        # Savings data
         self.savings_data = {
             "total_saved": 9550.00,
             "total_target": 15500.00,
@@ -128,7 +125,8 @@ async def reports_page(request: Request):
             <span class="fw-bold">${sub["amount"]:.2f}/mo</span>
         </div>
         '''
-    
+    sidebar_html = get_sidebar_html(active_page="reports")
+
     html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -361,73 +359,7 @@ async def reports_page(request: Request):
     </head>
     <body>
         <div id="wrapper">
-            <!-- Sidebar -->
-            <nav id="sidebar" class="p-3 d-flex flex-column vh-100">
-                <h4 class="text-white mb-4 text-center py-4">FinancePlan</h4>
-                
-                <ul class="nav nav-pills flex-column gap-2 flex-grow-1">
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center" href="/finance/dashboard">
-                            <span class="material-symbols-outlined me-2">dashboard</span>
-                            Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center active" href="/budget/">
-                            <span class="material-symbols-outlined me-2">account_balance</span>
-                            Budget
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center" href="/expenses/">
-                            <span class="material-symbols-outlined me-2">receipt</span>
-                            Expenses
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center active" href="/subscriptions/">
-                            <span class="material-symbols-outlined me-2">subscriptions</span>
-                            Subscriptions
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center active" href="/reports/">
-                            <span class="material-symbols-outlined me-2">bar_chart</span>
-                            Reports
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center" href="/savings/">
-                            <span class="material-symbols-outlined me-2">savings</span>
-                            Savings
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center" href="/calendar/">
-                            <span class="material-symbols-outlined me-2">calendar_month</span>
-                            Calendar
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center" href="/ai-assistant/">
-                            <span class="material-symbols-outlined me-2">smart_toy</span>
-                            AI Assistant
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link d-flex align-items-center" href="/app">
-                            <span class="material-symbols-outlined me-2">people</span>
-                            Users
-                        </a>
-                    </li>
-                    <li class="nav-item mt-auto">
-                        <a class="nav-link d-flex align-items-center text-danger" href="/logout">
-                            <span class="material-symbols-outlined me-2">logout</span>
-                            Logout
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+            {sidebar_html}
             
             <div id="content">
                 <!-- Top Navbar -->
