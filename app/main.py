@@ -5,7 +5,8 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.routers import templates, static_files, router, api_router
 from app.config import get_settings
 from contextlib import asynccontextmanager
-from app.routers import finance_router
+from app.routers import finance_router, expenses_router, subscriptions_router, budget_router, reports_router, savings_router, calendar_router
+
 
 
 @asynccontextmanager
@@ -25,6 +26,12 @@ app = FastAPI(middleware=[
 app.include_router(router)
 app.include_router(api_router)
 app.include_router(finance_router.router)
+app.include_router(expenses_router.router)
+app.include_router(subscriptions_router.router)
+app.include_router(budget_router.router)
+app.include_router(reports_router.router)
+app.include_router(savings_router.router)
+app.include_router(calendar_router.router)
 app.mount("/static", static_files, name="static")
 
 @app.exception_handler(status.HTTP_401_UNAUTHORIZED)

@@ -1,0 +1,269 @@
+/* Sidebar Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow-x: hidden;
+    background-color: #f8f9fa;
+}
+
+#wrapper {
+    display: flex;
+}
+
+#sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    min-height: 100vh;
+    transition: all 0.3s;
+    background: #1b263b;
+    color: #fff;
+}
+
+#sidebar.collapsed {
+    margin-left: -250px;
+}
+
+#sidebar .nav-link {
+    color: #adb5bd;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+#sidebar .nav-link:hover,
+#sidebar .nav-link.active {
+    color: #fff;
+    background-color: #415a77;
+    border-radius: 0.5rem;
+}
+
+#sidebar .nav-link.active {
+    background-color: #0d6efd;
+}
+
+#content {
+    width: 100%;
+    padding: 1rem;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+}
+
+/* Total Card */
+.total-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 15px 25px;
+    border-radius: 12px;
+    color: white;
+    text-align: center;
+    min-width: 200px;
+}
+
+.total-card small {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.total-card h3 {
+    margin: 5px 0 0;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+/* Category Section */
+.category-section {
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.category-header {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-bottom: 2px solid #e9ecef;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.category-header:hover {
+    background: #e9ecef;
+}
+
+.category-header h4 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.category-badge {
+    background: #0d6efd;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.category-total {
+    font-size: 18px;
+    font-weight: bold;
+    color: #198754;
+}
+
+.expense-list {
+    padding: 0;
+}
+
+.expense-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #e9ecef;
+    transition: background 0.2s;
+}
+
+.expense-item:hover {
+    background: #f8f9fa;
+}
+
+.expense-item:last-child {
+    border-bottom: none;
+}
+
+.expense-name {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.expense-date {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.expense-amount {
+    font-size: 16px;
+    font-weight: 600;
+    color: #dc3545;
+}
+
+.delete-expense {
+    color: #dc3545;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.delete-expense:hover {
+    background: #dc3545;
+    color: white;
+}
+
+/* Button Styles */
+.btn-primary {
+    background-color: #0d6efd;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background-color: #5c636a;
+}
+
+.btn-outline-secondary {
+    background-color: transparent;
+    border: 1px solid #6c757d;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Modal Styles */
+.modal-content {
+    border-radius: 12px;
+}
+
+.modal-header {
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #sidebar {
+        transform: translateX(-100%);
+        position: fixed;
+        z-index: 1000;
+    }
+    
+    #sidebar.collapsed {
+        transform: translateX(0);
+    }
+    
+    #content {
+        margin-left: 0;
+    }
+    
+    .total-card {
+        min-width: 150px;
+        padding: 10px 15px;
+    }
+    
+    .total-card h3 {
+        font-size: 20px;
+    }
+    
+    .category-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.category-section {
+    animation: fadeIn 0.3s ease-out;
+}

@@ -1,0 +1,114 @@
+/* Additional styles beyond the inline CSS */
+.goal-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.goal-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+/* Progress bar color variations */
+.progress-fill.bg-success {
+    background-color: #198754 !important;
+}
+
+.progress-fill.bg-info {
+    background-color: #0dcaf0 !important;
+}
+
+.progress-fill.bg-warning {
+    background-color: #ffc107 !important;
+}
+
+.progress-fill.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+/* Animation for progress bars */
+.progress-fill {
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover effects */
+.btn-contribute {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-contribute::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-contribute:active::after {
+    width: 200px;
+    height: 200px;
+}
+
+/* Goal card animations */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.goal-card {
+    animation: slideIn 0.4s ease-out;
+}
+
+/* Stagger animation for multiple cards */
+.goal-card:nth-child(1) { animation-delay: 0.05s; }
+.goal-card:nth-child(2) { animation-delay: 0.1s; }
+.goal-card:nth-child(3) { animation-delay: 0.15s; }
+.goal-card:nth-child(4) { animation-delay: 0.2s; }
+.goal-card:nth-child(5) { animation-delay: 0.25s; }
+
+/* Responsive font sizes */
+@media (max-width: 768px) {
+    .goal-title {
+        font-size: 18px;
+    }
+    
+    .goal-amounts {
+        font-size: 12px;
+    }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

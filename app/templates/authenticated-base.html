@@ -73,19 +73,59 @@
 
         <ul class="nav nav-pills flex-column gap-2 flex-grow-1">
             <li class="nav-item">
+                <a class="nav-link d-flex align-items-center {{ 'active' if request.url.path == '/finance/dashboard' }}" href="/finance/dashboard">
+                    <span class="material-symbols-outlined me-2">dashboard</span>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center active" href="/budget/">
+                    <span class="material-symbols-outlined me-2">account_balance</span>
+                    Budget
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center" href="/expenses/">
+                    <span class="material-symbols-outlined me-2">receipt</span>
+                    Expenses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center active" href="/subscriptions/">
+                    <span class="material-symbols-outlined me-2">subscriptions</span>
+                    Subscriptions
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center active" href="/reports/">
+                    <span class="material-symbols-outlined me-2">bar_chart</span>
+                    Reports
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center" href="/savings/">
+                    <span class="material-symbols-outlined me-2">savings</span>
+                    Savings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center" href="/calendar/">
+                    <span class="material-symbols-outlined me-2">calendar_month</span>
+                    Calendar
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center" href="/ai-assistant/">
+                    <span class="material-symbols-outlined me-2">smart_toy</span>
+                    AI Assistant
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link d-flex align-items-center {{ 'active' if request.path == '/app' }}" href="/app">
                     <span class="material-symbols-outlined me-2">people</span>
                     Users
                 </a>
             </li>
-
-            <li class="nav-item">
-                <a class="nav-link d-flex align-items-center {{ 'active' if request.url.path == '/finance/dashboard' }}" href="/finance/dashboard">
-                    <span class="material-symbols-outlined me-2">dashboard</span>
-                    Finance Dashboard
-                </a>
-            </li>
-            
             <li class="nav-item mt-auto">
                 <a class="nav-link d-flex align-items-center text-danger" href="/logout">
                     <span class="material-symbols-outlined me-2">logout</span>
