@@ -1,0 +1,239 @@
+{% extends "layout.html" %}
+
+{% block title %}Financial Dashboard{% endblock %}
+
+{% block subpage_content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-semibold mb-2">Financial Dashboard</h1>
+    <p class="text-gray-500">Overview of your financial health</p>
+</div>
+
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-xl p-6 border-l-4 shadow-sm hover:shadow-md transition-shadow" style="border-left-color: #006699">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-sm text-gray-500 mb-2">Monthly Income</p>
+                <p class="text-2xl font-semibold" id="monthlyIncome">${{ "%.2f"|format(monthly_income) }}</p>
+            </div>
+            <div class="p-3 rounded-lg bg-[#006699]/10">
+                <svg class="w-6 h-6" style="color: #006699" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl p-6 border-l-4 shadow-sm hover:shadow-md transition-shadow" style="border-left-color: #ff6600">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-sm text-gray-500 mb-2">Total Expenses</p>
+                <p class="text-2xl font-semibold" id="totalExpenses">${{ "%.2f"|format(total_expenses) }}</p>
+            </div>
+            <div class="p-3 rounded-lg bg-[#ff6600]/10">
+                <svg class="w-6 h-6" style="color: #ff6600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl p-6 border-l-4 shadow-sm hover:shadow-md transition-shadow" style="border-left-color: #669900">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-sm text-gray-500 mb-2">Burn Rate</p>
+                <p class="text-2xl font-semibold" id="burnRate">${{ "%.2f"|format(burn_rate) }}</p>
+                <span class="text-xs text-green-600">Surplus</span>
+            </div>
+            <div class="p-3 rounded-lg bg-[#669900]/10">
+                <svg class="w-6 h-6" style="color: #669900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl p-6 border-l-4 shadow-sm hover:shadow-md transition-shadow" style="border-left-color: #cc3399">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-sm text-gray-500 mb-2">Savings Rate</p>
+                <p class="text-2xl font-semibold" id="savingsRate">{{ "%.1f"|format(savings_rate) }}%</p>
+                <span class="text-xs text-gray-500">of income</span>
+            </div>
+            <div class="p-3 rounded-lg bg-[#cc3399]/10">
+                <svg class="w-6 h-6" style="color: #cc3399" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold">Income vs Expenses Trend</h3>
+            <button class="text-sm text-blue-600 hover:text-blue-800" id="setIncomeBtn">Set Income</button>
+        </div>
+        <canvas id="trendChart" height="300"></canvas>
+    </div>
+    <div class="bg-white rounded-xl p-6 shadow-sm">
+        <h3 class="text-lg font-semibold mb-6">Spending by Category</h3>
+        <canvas id="categoryChart" height="300"></canvas>
+    </div>
+</div>
+
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-sm">
+        <div class="p-6 border-b">
+            <h3 class="text-lg font-semibold">Budget Progress</h3>
+        </div>
+        <div class="p-6 space-y-4">
+            {% for budget in budgets %}
+            <div>
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="font-medium">{{ budget.category }}</span>
+                    <span class="text-gray-500">${{ "%.2f"|format(budget.spent) }} / ${{ "%.2f"|format(budget.limit) }}</span>
+                </div>
+                <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-500" style="width: {{ budget.percentage }}%; background-color: {{ budget.color }}"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm">
+        <div class="p-6 border-b">
+            <h3 class="text-lg font-semibold">Recent Expenses</h3>
+        </div>
+        <div class="divide-y">
+            {% for expense in recent_expenses %}
+            <div class="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                <div>
+                    <p class="font-medium">{{ expense.name }}</p>
+                    <p class="text-sm text-gray-500">{{ expense.category }} • {{ expense.date }}</p>
+                </div>
+                <p class="text-lg font-semibold" style="color: #ff6600">-${{ "%.2f"|format(expense.amount) }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const monthlyIncome = {{ monthly_income }};
+    const monthlyExpensesData = {{ monthly_expenses_data | tojson }};
+    const monthlyLabels = {{ monthly_labels | tojson }};
+    const categoryLabels = {{ category_labels | tojson }};
+    const categoryValues = {{ category_values | tojson }};
+    
+    let trendChart = null;
+    let categoryChart = null;
+    
+    function initTrendChart() {
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        const incomeData = Array(monthlyLabels.length).fill(monthlyIncome);
+        
+        if (trendChart) trendChart.destroy();
+        trendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: monthlyLabels,
+                datasets: [{
+                    label: 'Income',
+                    data: incomeData,
+                    borderColor: '#006699',
+                    backgroundColor: 'rgba(0, 102, 153, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Expenses',
+                    data: monthlyExpensesData,
+                    borderColor: '#ff6600',
+                    backgroundColor: 'rgba(255, 102, 0, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': $' + context.raw.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function initCategoryChart() {
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+        const colors = ['#006699', '#669900', '#ff6600', '#cc3399', '#99cc33', '#ffcc00'];
+        
+        if (categoryChart) categoryChart.destroy();
+        categoryChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    data: categoryValues,
+                    backgroundColor: colors.slice(0, categoryLabels.length),
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.label + ': $' + context.raw.toFixed(2);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    async function updateIncome() {
+        const newIncome = prompt('Enter your monthly income:', monthlyIncome);
+        if (newIncome && !isNaN(newIncome)) {
+            const response = await fetch('/finance/api/update-income', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ income: parseFloat(newIncome) })
+            });
+            if (response.ok) {
+                window.location.reload();
+            }
+        }
+    }
+    
+    document.getElementById('setIncomeBtn')?.addEventListener('click', updateIncome);
+    
+    initTrendChart();
+    initCategoryChart();
+</script>
+{% endblock %}

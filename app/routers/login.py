@@ -4,18 +4,21 @@ from app.dependencies import SessionDep
 from . import router, templates
 from app.services.auth_service import AuthService
 from app.repositories.user import UserRepository
-from app.utilities.flash import flash
+from app.utilities.flash import flash, get_flashed_messages
 from app.config import get_settings
 
-# View route responsible for UI
+
 @router.get("/login", response_class=HTMLResponse)
 async def login_view(request: Request):
     return templates.TemplateResponse(
         request=request, 
         name="login.html",
+        context={
+            "flash_messages": get_flashed_messages(request),
+        }
     )
 
-#Action route responsible for actually logging in the person
+
 @router.post("/login", response_class=HTMLResponse)
 async def login_action_ajax(
     db: SessionDep,

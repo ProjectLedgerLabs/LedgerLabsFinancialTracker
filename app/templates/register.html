@@ -85,11 +85,11 @@
                         </div>
 
                         <div class="d-grid mb-3">
-                            <a class="btn btn-secondary btn-lg" href="{{url_for('login_view')}}" role="button">
+                            <a class="btn btn-secondary btn-lg" href="/login" role="button">
                                 Back to Login
                             </a>
                         </div>
-                        {% for message in get_flashed_messages(request) %}
+                        {% for message in flashed_messages %}
                         <div class="alert alert-{{ message.type }}" role="alert">{{ message.message }}</div>
                         {% endfor %}
                     </form>

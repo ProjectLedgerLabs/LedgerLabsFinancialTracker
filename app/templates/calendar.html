@@ -1,0 +1,83 @@
+{% extends "layout.html" %}
+
+{% block title %}Calendar{% endblock %}
+
+{% block subpage_content %}
+<div class="mb-8 flex items-center justify-between">
+    <div>
+        <h1 class="text-3xl font-semibold mb-2">Calendar View</h1>
+        <p class="text-gray-500">Track spending and income by date</p>
+    </div>
+    <div class="flex items-center gap-2">
+        <a href="/calendar/?year={{ prev_year }}&month={{ prev_month }}" class="px-3 py-2 border rounded-lg hover:bg-gray-50">
+            &larr;
+        </a>
+        <span class="text-lg font-semibold">{{ current_month_name }} {{ year }}</span>
+        <a href="/calendar/?year={{ next_year }}&month={{ next_month }}" class="px-3 py-2 border rounded-lg hover:bg-gray-50">
+            &rarr;
+        </a>
+    </div>
+</div>
+
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4" style="border-left-color: #006699">
+        <p class="text-sm text-gray-500 mb-1">Monthly Income</p>
+        <p class="text-2xl font-semibold">${{ "%.2f"|format(monthly_totals.income) }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4" style="border-left-color: #ff6600">
+        <p class="text-sm text-gray-500 mb-1">Monthly Expenses</p>
+        <p class="text-2xl font-semibold" style="color: #ff6600">${{ "%.2f"|format(monthly_totals.expenses) }}</p>
+    </div>
+</div>
+
+
+<div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
+    <div class="grid grid-cols-7 border-b">
+        {% for day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] %}
+        <div class="p-3 text-center font-semibold border-r last:border-r-0">{{ day }}</div>
+        {% endfor %}
+    </div>
+    <div class="grid grid-cols-7">
+        {% for i in range(start_weekday) %}
+        <div class="min-h-[100px] p-2 border-r border-b bg-gray-50"></div>
+        {% endfor %}
+        
+        {% for day in range(1, days_in_month + 1) %}
+        <div class="min-h-[100px] p-2 border-r border-b {% if loop.index % 7 == 0 %}border-r-0{% endif %} hover:bg-gray-50">
+            <div class="font-medium mb-2">{{ day }}</div>
+            <div class="space-y-1 text-xs">
+                {% for event in events_by_date.get(day|string, []) %}
+                <div class="p-1 rounded {% if event.type == 'income' %}bg-green-100 text-green-800{% elif event.type == 'expense' %}bg-red-100 text-red-800{% elif event.type == 'subscription' %}bg-blue-100 text-blue-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                    {{ event.title }}<br>
+                    ${{ "%.2f"|format(event.amount) }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+<div class="bg-white rounded-xl shadow-sm">
+    <div class="p-6 border-b">
+        <h3 class="text-lg font-semibold">Upcoming Events</h3>
+    </div>
+    <div class="divide-y">
+        {% for event in upcoming_events %}
+        <div class="p-4 flex justify-between items-center">
+            <div>
+                <p class="font-medium">{{ event.title }}</p>
+                <p class="text-sm text-gray-500">{{ event.type|capitalize }} • {{ event.date }}</p>
+            </div>
+            <p class="font-semibold {% if event.type == 'income' %}text-green-600{% else %}text-red-600{% endif %}">
+                {% if event.type == 'income' %}+{% else %}-{% endif %}${{ "%.2f"|format(event.amount) }}
+            </p>
+        </div>
+        {% else %}
+        <div class="p-6 text-center text-gray-500">No upcoming events</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
