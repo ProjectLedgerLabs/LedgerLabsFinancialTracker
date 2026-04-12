@@ -1,55 +1,87 @@
-{% extends "layout.html" %}
+{% extends "authenticated-base.html" %}
 
-{% block title %}Budget{% endblock %}
+{% block title %}Budget Management{% endblock %}
+
+{% block additional_styles %}
+<link href="/static/css/budget.css" rel="stylesheet">
+{% endblock %}
 
 {% block subpage_content %}
-<div class="mb-8">
-    <h1 class="text-3xl font-semibold mb-2">Budget</h1>
-    <p class="text-gray-500">Track your spending against budget limits</p>
-</div>
+<div class="budget-container">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1>Budget Management</h1>
+        <p class="text-muted">Track spending against your budget</p>
+    </div>
 
-<div class="bg-white rounded-xl p-8 mb-8 shadow-sm border-l-4" style="border-left-color: #669900">
-    <div class="flex items-start justify-between mb-6">
-        <div>
-            <p class="text-sm text-gray-500 mb-1">Overall Budget Progress</p>
-            <p class="text-3xl font-semibold mb-2">${{ total_spent }} / ${{ total_allocated }}</p>
-            <p class="text-sm" style="color: #669900">{{ overall_progress }}% of total budget used</p>
+    <!-- Summary Cards Row -->
+    <div class="summary-cards">
+        <div class="summary-card allocated">
+            <div class="card-label">Total Allocated</div>
+            <div class="card-value">${{ total_allocated }}</div>
         </div>
-        <div class="p-4 rounded-lg bg-[#669900]/10">
-            <svg class="w-8 h-8" style="color: #669900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-            </svg>
+        <div class="summary-card spent">
+            <div class="card-label">Total Spent</div>
+            <div class="card-value">${{ total_spent }}</div>
+        </div>
+        <div class="summary-card remaining">
+            <div class="card-label">Remaining</div>
+            <div class="card-value">${{ "%.2f"|format(total_allocated|float - total_spent|float) }}</div>
+        </div>
+        <div class="summary-card progress">
+            <div class="card-label">Total Progress</div>
+            <div class="card-value">{{ overall_progress }}%</div>
+            <div class="card-sub">of total budget used</div>
         </div>
     </div>
-    <div class="w-full h-4 bg-gray-100 rounded-full overflow-hidden">
-        <div class="h-full rounded-full transition-all duration-500" style="width: {{ overall_progress }}%; background-color: #669900"></div>
-    </div>
-</div>
 
-<div class="space-y-6">
-    {% for budget in budgets %}
-    <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
-        <div class="flex items-start justify-between mb-4">
-            <div class="flex-1">
-                <div class="flex items-center gap-2 mb-1">
-                    <h3 class="font-semibold text-lg">{{ budget.category }}</h3>
-                    {% if budget.percentage > 100 %}
-                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    {% endif %}
+    <!-- Overall Progress Card -->
+    <div class="overall-progress-card">
+        <div class="progress-header">
+            <div>
+                <div class="progress-title">Overall Budget Progress</div>
+                <div class="progress-amount">${{ total_spent }} / ${{ total_allocated }}</div>
+                <div class="progress-percentage">{{ overall_progress }}% of total budget used</div>
+            </div>
+            <div class="progress-icon">
+                <svg class="w-8 h-8" style="color: #669900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar-fill" style="width: {{ overall_progress }}%"></div>
+        </div>
+    </div>
+
+    <!-- Budget Categories Grid -->
+    <div class="budget-grid">
+        {% for budget in budgets %}
+        <div class="budget-card">
+            <div class="budget-card-header">
+                <div class="budget-category-info">
+                    <div class="budget-category-name">
+                        <h3>{{ budget.category }}</h3>
+                        {% if budget.percentage > 100 %}
+                        <svg class="warning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        {% endif %}
+                    </div>
+                    <div class="budget-spent-text">${{ "%.2f"|format(budget.spent) }} of ${{ "%.2f"|format(budget.limit) }} spent</div>
                 </div>
-                <p class="text-sm text-gray-500">${{ "%.2f"|format(budget.spent) }} of ${{ "%.2f"|format(budget.limit) }} spent</p>
+                <div class="budget-percentage">
+                    <div class="budget-percentage-value" style="color: {{ budget.color }}">{{ "%.1f"|format(budget.percentage) }}%</div>
+                    <div class="budget-remaining">${{ "%.2f"|format(budget.remaining) }} remaining</div>
+                </div>
             </div>
-            <div class="text-right">
-                <p class="font-semibold text-lg" style="color: {{ budget.color }}">{{ "%.1f"|format(budget.percentage) }}%</p>
-                <p class="text-sm text-gray-500">${{ "%.2f"|format(budget.remaining) }} remaining</p>
+            <div class="budget-progress">
+                <div class="progress-track">
+                    <div class="progress-fill {{ budget.category|lower }}" style="width: {% if budget.percentage > 100 %}100{% else %}{{ budget.percentage }}{% endif %}%"></div>
+                </div>
             </div>
         </div>
-        <div class="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
-            <div class="h-full rounded-full transition-all duration-500" style="width: {% if budget.percentage > 100 %}100{% else %}{{ budget.percentage }}{% endif %}%; background-color: {{ budget.color }}"></div>
-        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
 </div>
 {% endblock %}
