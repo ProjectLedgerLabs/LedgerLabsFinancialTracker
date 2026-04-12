@@ -6,7 +6,7 @@ from app.routers.sidebar import get_sidebar_html
 
 router = APIRouter(prefix="/budget", tags=["budget"])
 
-# Schemas
+
 class BudgetUpdate(BaseModel):
     category: str
     limit: float
@@ -15,7 +15,7 @@ class BudgetCreate(BaseModel):
     category: str
     limit: float
 
-# Service layer
+
 class BudgetService:
     def __init__(self):
         self.budget_limits = {
@@ -90,7 +90,6 @@ class BudgetService:
 budget_service = BudgetService()
 
 # Page Route
-
 @router.get("/", response_class=HTMLResponse)
 async def budget_page(request: Request):
     """Render the budget page with inline HTML"""

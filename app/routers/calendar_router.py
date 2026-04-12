@@ -172,9 +172,9 @@ async def calendar_page(request: Request):
     username = "User"
     if hasattr(request, "session") and request.session:
         username = request.session.get("username", "User")
-
-    sidebar_html = get_sidebar_html(active_page="calendar")
     
+    sidebar_html = get_sidebar_html(active_page="calendar")
+
     html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
