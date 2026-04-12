@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinancePlan - Financial Reports</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20,100,1,200" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            overflow-x: hidden;
+            background-color: #f8f9fa;
+        }
+        
+        #wrapper {
+            display: flex;
+        }
+        
+        #sidebar {
+            min-width: 250px;
+            max-width: 250px;
+            min-height: 100vh;
+            transition: all 0.3s;
+            background: #1b263b;
+            color: #fff;
+        }
+        
+        #sidebar.collapsed {
+            margin-left: -250px;
+        }
+        
+        #sidebar .nav-link {
+            color: #adb5bd;
+            font-weight: 500;
+        }
+        
+        #sidebar .nav-link:hover,
+        #sidebar .nav-link.active {
+            color: #fff;
+            background-color: #415a77;
+            border-radius: 0.5rem;
+        }
+        
+        #sidebar .nav-link.active {
+            background-color: #0d6efd;
+        }
+        
+        #content {
+            width: 100%;
+            padding: 1rem;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fa;
+        }
+        
+        .stats-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .stats-card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .stats-card-icon.purple {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .stats-card-icon.blue {
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+            color: white;
+        }
+        
+        .stats-card-icon.green {
+            background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+            color: white;
+        }
+        
+        .stats-card-icon.orange {
+            background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%);
+            color: white;
+        }
+        
+        .stats-card-icon .material-symbols-outlined {
+            font-size: 28px;
+        }
+        
+        .stats-card-content {
+            flex: 1;
+        }
+        
+        .stats-card-content small {
+            font-size: 12px;
+            color: #6c757d;
+            display: block;
+        }
+        
+        .stats-card-content h3 {
+            margin: 5px 0 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+        
+        .insight-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .insight-item:last-child {
+            border-bottom: none;
+        }
+        
+        .top-category-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .subscription-summary {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .subscriptions-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .subscription-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .savings-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .savings-stat h3 {
+            margin: 5px 0 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .progress-bar-custom {
+            background-color: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 12px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        @media (max-width: 768px) {
+            #sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 1000;
+            }
+            
+            #sidebar.collapsed {
+                transform: translateX(0);
+            }
+            
+            #content {
+                margin-left: 0;
+            }
+            
+            .savings-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="wrapper">
+        {{ sidebar_html | safe }}
+        
+        <div id="content">
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand-lg bg-white mb-4 px-3 rounded-3 shadow-sm">
+                <button class="btn btn-outline-secondary" id="menu-toggle">
+                    <span class="material-symbols-outlined">menu</span>
+                </button>
+                <div class="ms-auto d-flex align-items-center gap-3">
+                    <span class="fw-semibold">Welcome, {{ username }}</span>
+                </div>
+            </nav>
+            
+            <div class="container-fluid">
+                <!-- Header -->
+                <div class="mb-4">
+                    <h1>Financial Reports</h1>
+                    <p class="text-muted">Comprehensive analytics and insights</p>
+                </div>
+                
+                <!-- Stats Cards Row -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-icon purple">
+                                <span class="material-symbols-outlined">payments</span>
+                            </div>
+                            <div class="stats-card-content">
+                                <small>This Month's Spending</small>
+                                <h3>${{ "%.2f"|format(spending_insights['current_month']) }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-icon blue">
+                                <span class="material-symbols-outlined">trending_up</span>
+                            </div>
+                            <div class="stats-card-content">
+                                <small>Avg. Monthly Spending</small>
+                                <h3>${{ "%.2f"|format(spending_insights['average_monthly']) }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-icon green">
+                                <span class="material-symbols-outlined">compare_arrows</span>
+                            </div>
+                            <div class="stats-card-content">
+                                <small>Month over Month</small>
+                                <h3 class="{{ 'text-danger' if not spending_insights['is_decreasing'] else 'text-success' }}">{{ "%.1f"|format(spending_insights['month_over_month']) }}%</h3>
+                                <small>{{ '↓ Decreasing' if spending_insights['is_decreasing'] else '↑ Increasing' }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-card">
+                            <div class="stats-card-icon orange">
+                                <span class="material-symbols-outlined">subscriptions</span>
+                            </div>
+                            <div class="stats-card-content">
+                                <small>Active Subscriptions</small>
+                                <h3>${{ "%.2f"|format(subscription_summary['monthly_cost']) }}</h3>
+                                <small>monthly</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Monthly Trend Chart -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">6-Month Financial Trend</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Two Column Layout -->
+                <div class="row mb-4">
+                    <div class="col-lg-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Spending by Category</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="categoryChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Spending Insights</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="insight-item">
+                                    <span class="material-symbols-outlined text-warning">warning</span>
+                                    <div>
+                                        <strong>Top Spending Category</strong>
+                                        <p class="mb-0">{{ top_categories[0]['name'] if top_categories else 'None' }} (${{ "%.2f"|format(top_categories[0]['amount']) if top_categories else 0 }})</p>
+                                    </div>
+                                </div>
+                                <div class="insight-item">
+                                    <span class="material-symbols-outlined text-success">trending_down</span>
+                                    <div>
+                                        <strong>Month-over-Month Change</strong>
+                                        <p class="mb-0">{{ 'Decreased' if spending_insights['is_decreasing'] else 'Increased' }} by {{ "%.1f"|format(spending_insights['month_over_month'] | abs) }}%</p>
+                                    </div>
+                                </div>
+                                <div class="insight-item">
+                                    <span class="material-symbols-outlined text-info">savings</span>
+                                    <div>
+                                        <strong>Savings Progress</strong>
+                                        <p class="mb-0">{{ "%.1f"|format(savings_summary['progress']) }}% of goal achieved</p>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <h6>Top Spending Categories</h6>
+                                    <div class="top-categories">
+                                        {% for cat in top_categories %}
+                                        <div class="top-category-item">
+                                            <span>{{ cat['name'] }}</span>
+                                            <strong>${{ "%.2f"|format(cat['amount']) }}</strong>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Subscriptions Section -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Active Subscriptions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="subscription-summary">
+                                    <small>Monthly Cost</small>
+                                    <h4>${{ "%.2f"|format(subscription_summary['monthly_cost']) }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="subscription-summary">
+                                    <small>Yearly Projection</small>
+                                    <h4>${{ "%.2f"|format(subscription_summary['yearly_projection']) }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="subscription-summary">
+                                    <small>Active Services</small>
+                                    <h4>{{ subscription_summary['active_services'] }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="subscriptions-list">
+                            {% for sub in subscription_summary['subscriptions'] %}
+                            <div class="subscription-item">
+                                <div>
+                                    <h6 class="mb-0">{{ sub['name'] }}</h6>
+                                    <small class="text-muted">Next: {{ sub['nextBilling'] }}</small>
+                                </div>
+                                <span class="fw-bold">${{ "%.2f"|format(sub['amount']) }}/mo</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Savings Goal Progress -->
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Savings Goal Progress</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="savings-stats">
+                            <div class="savings-stat">
+                                <small>Total Saved</small>
+                                <h3>${{ "%.2f"|format(savings_summary['total_saved']) }}</h3>
+                            </div>
+                            <div class="savings-stat">
+                                <small>Total Target</small>
+                                <h3>${{ "%.2f"|format(savings_summary['total_target']) }}</h3>
+                            </div>
+                            <div class="savings-stat">
+                                <small>Overall Progress</small>
+                                <h3>{{ "%.1f"|format(savings_summary['progress']) }}%</h3>
+                            </div>
+                        </div>
+                        <div class="progress-bar-custom mt-3">
+                            <div class="progress-fill bg-success" style="width: {{ "%.1f"|format(savings_summary['progress']) }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Pass data to JavaScript
+        window.reportsData = {
+            monthlyLabels: {{ monthly_labels_json | safe }},
+            monthlySpending: {{ monthly_spending_json | safe }},
+            monthlyIncome: {{ monthly_income_json | safe }},
+            categoryLabels: {{ category_labels_json | safe }},
+            categoryValues: {{ category_values_json | safe }}
+        };
+        
+        let trendChart = null;
+        let categoryChart = null;
+        
+        function initTrendChart() {
+            const canvas = document.getElementById('trendChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const data = window.reportsData || {};
+            
+            if (trendChart) trendChart.destroy();
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.monthlyLabels,
+                    datasets: [
+                        { label: 'Income', data: data.monthlyIncome, borderColor: '#0d6efd', backgroundColor: 'rgba(13, 110, 253, 0.1)', fill: true, tension: 0.4, borderWidth: 2 },
+                        { label: 'Expenses', data: data.monthlySpending, borderColor: '#fd7e14', backgroundColor: 'rgba(253, 126, 20, 0.1)', fill: true, tension: 0.4, borderWidth: 2 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': $' + context.raw.toFixed(2); } } } },
+                    scales: { y: { beginAtZero: true, ticks: { callback: function(value) { return '$' + value; } } } }
+                }
+            });
+        }
+        
+        function initCategoryChart() {
+            const canvas = document.getElementById('categoryChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const data = window.reportsData || {};
+            const colors = ['#0d6efd', '#20c997', '#0dcaf0', '#fd7e14', '#6c757d', '#d63384'];
+            
+            if (categoryChart) categoryChart.destroy();
+            categoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: data.categoryLabels, datasets: [{ data: data.categoryValues, backgroundColor: colors.slice(0, data.categoryLabels.length), borderWidth: 2, borderColor: '#fff' }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: function(context) { return context.label + ': $' + context.raw.toFixed(2); } } } } }
+            });
+        }
+        
+        document.getElementById('menu-toggle')?.addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        });
+        
+        initTrendChart();
+        initCategoryChart();
+    </script>
+</body>
+</html>
