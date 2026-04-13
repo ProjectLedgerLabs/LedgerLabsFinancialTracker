@@ -1,5 +1,5 @@
 from ast import Dict, List
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlmodel import Field, Relationship, SQLModel
 from typing import Optional
@@ -255,3 +255,55 @@ class FinanceService:
             "monthly_expenses_data": self.monthly_expenses_history,
             "monthly_labels": self.monthly_labels
         }
+
+
+#calendar_router
+class CalendarEvent(BaseModel):
+    title: str
+    date: str
+    amount: float
+    type: str
+
+class CalendarService:
+    def __init__(self):
+        self.events = [
+            {"title": "Grocery shopping", "date": "2026-04-05", "amount": 156.32, "type": "expense"},
+            {"title": "Gas station", "date": "2026-04-03", "amount": 65.00, "type": "expense"},
+            {"title": "Restaurant dinner", "date": "2026-04-01", "amount": 89.50, "type": "expense"},
+            {"title": "Gym membership", "date": "2026-04-10", "amount": 49.99, "type": "subscription"},
+            {"title": "Netflix", "date": "2026-04-15", "amount": 15.99, "type": "subscription"},
+            {"title": "Internet bill", "date": "2026-04-01", "amount": 80.00, "type": "bill"},
+            {"title": "Salary", "date": "2026-04-15", "amount": 5000.00, "type": "income"},
+        ]
+    
+    def get_events_by_month(self, year: int, month: int) -> Dict[str, List]:
+        events_by_date = {}
+        for event in self.events:
+            event_date = datetime.strptime(event["date"], "%Y-%m-%d")
+            if event_date.year == year and event_date.month == month:
+                day = str(event_date.day)
+                if day not in events_by_date:
+                    events_by_date[day] = []
+                events_by_date[day].append(event)
+        return events_by_date
+    
+    def get_monthly_totals(self, year: int, month: int) -> Dict:
+        total_expenses = 0
+        total_income = 0
+        for event in self.events:
+            event_date = datetime.strptime(event["date"], "%Y-%m-%d")
+            if event_date.year == year and event_date.month == month:
+                if event["type"] in ["expense", "subscription", "bill"]:
+                    total_expenses += event["amount"]
+                elif event["type"] == "income":
+                    total_income += event["amount"]
+        return {"expenses": total_expenses, "income": total_income}
+    
+    def get_upcoming_events(self, days: int = 14) -> List[Dict]:
+        today = datetime.now().date()
+        upcoming = []
+        for event in self.events:
+            event_date = datetime.strptime(event["date"], "%Y-%m-%d").date()
+            if today <= event_date <= today + timedelta(days=days):
+                upcoming.append(event)
+        return sorted(upcoming, key=lambda x: x["date"])
