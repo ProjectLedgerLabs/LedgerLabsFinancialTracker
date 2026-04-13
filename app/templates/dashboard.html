@@ -2,123 +2,144 @@
 
 {% block title %}Financial Dashboard{% endblock %}
 
+{% block additional_styles %}
+<link href="/static/css/finance.css" rel="stylesheet">
+{% endblock %}
+
 {% block subpage_content %}
-<div class="mb-8">
-    <h1 class="text-3xl font-semibold mb-2">Financial Dashboard</h1>
-    <p class="text-gray-500">Overview of your financial health</p>
-</div>
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div>
+            <h1>Financial Dashboard</h1>
+            <p class="text-muted">Overview of your financial health</p>
+        </div>
+        <button class="btn-set-income" id="setIncomeBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 4v16m8-8H4"/>
+            </svg>
+            Set Income
+        </button>
+    </div>
 
-
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="bg-white rounded-xl p-6 border-l-4 shadow-sm hover:shadow-md transition-shadow" style="border-left-color: #006699">
-        <div class="flex items-start justify-between">
-            <div>
-                <p class="text-sm text-gray-500 mb-2">Monthly Income</p>
-                <p class="text-2xl font-semibold" id="monthlyIncome">${{ "%.2f"|format(monthly_income) }}</p>
-            </div>
-            <div class="p-3 rounded-lg bg-[#006699]/10">
-                <svg class="w-6 h-6" style="color: #006699" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    <!-- Stats Grid - 4 columns like expenses page -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--blue">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
-        </div>
-    </div>
-    
-    <div class="bg-white rounded-xl p-6 border-l-4 shadow-sm hover:shadow-md transition-shadow" style="border-left-color: #ff6600">
-        <div class="flex items-start justify-between">
-            <div>
-                <p class="text-sm text-gray-500 mb-2">Total Expenses</p>
-                <p class="text-2xl font-semibold" id="totalExpenses">${{ "%.2f"|format(total_expenses) }}</p>
+            <div class="stat-card__content">
+                <p class="stat-card__label">Monthly Income</p>
+                <p class="stat-card__value" id="monthlyIncome">${{ "%.2f"|format(monthly_income) }}</p>
             </div>
-            <div class="p-3 rounded-lg bg-[#ff6600]/10">
-                <svg class="w-6 h-6" style="color: #ff6600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--orange">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
-        </div>
-    </div>
-    
-    <div class="bg-white rounded-xl p-6 border-l-4 shadow-sm hover:shadow-md transition-shadow" style="border-left-color: #669900">
-        <div class="flex items-start justify-between">
-            <div>
-                <p class="text-sm text-gray-500 mb-2">Burn Rate</p>
-                <p class="text-2xl font-semibold" id="burnRate">${{ "%.2f"|format(burn_rate) }}</p>
-                <span class="text-xs text-green-600">Surplus</span>
+            <div class="stat-card__content">
+                <p class="stat-card__label">Total Expenses</p>
+                <p class="stat-card__value" id="totalExpenses">${{ "%.2f"|format(total_expenses) }}</p>
             </div>
-            <div class="p-3 rounded-lg bg-[#669900]/10">
-                <svg class="w-6 h-6" style="color: #669900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--green">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                 </svg>
             </div>
-        </div>
-    </div>
-    
-    <div class="bg-white rounded-xl p-6 border-l-4 shadow-sm hover:shadow-md transition-shadow" style="border-left-color: #cc3399">
-        <div class="flex items-start justify-between">
-            <div>
-                <p class="text-sm text-gray-500 mb-2">Savings Rate</p>
-                <p class="text-2xl font-semibold" id="savingsRate">{{ "%.1f"|format(savings_rate) }}%</p>
-                <span class="text-xs text-gray-500">of income</span>
+            <div class="stat-card__content">
+                <p class="stat-card__label">Burn Rate</p>
+                <p class="stat-card__value" id="burnRate">${{ "%.2f"|format(burn_rate) }}</p>
+                <span class="stat-card__badge stat-card__badge--success">Surplus</span>
             </div>
-            <div class="p-3 rounded-lg bg-[#cc3399]/10">
-                <svg class="w-6 h-6" style="color: #cc3399" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card__icon stat-card__icon--purple">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
+            <div class="stat-card__content">
+                <p class="stat-card__label">Savings Rate</p>
+                <p class="stat-card__value" id="savingsRate">{{ "%.1f"|format(savings_rate) }}%</p>
+                <span class="stat-card__meta">of income</span>
+            </div>
         </div>
     </div>
-</div>
 
-
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <div class="bg-white rounded-xl p-6 shadow-sm">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold">Income vs Expenses Trend</h3>
-            <button class="text-sm text-blue-600 hover:text-blue-800" id="setIncomeBtn">Set Income</button>
+    <!-- Charts Row -->
+    <div class="charts-row">
+        <div class="chart-card">
+            <div class="chart-card__header">
+                <h3>Income vs Expenses Trend</h3>
+            </div>
+            <div class="chart-card__body">
+                <canvas id="trendChart"></canvas>
+            </div>
         </div>
-        <canvas id="trendChart" height="300"></canvas>
-    </div>
-    <div class="bg-white rounded-xl p-6 shadow-sm">
-        <h3 class="text-lg font-semibold mb-6">Spending by Category</h3>
-        <canvas id="categoryChart" height="300"></canvas>
-    </div>
-</div>
 
-
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <div class="bg-white rounded-xl shadow-sm">
-        <div class="p-6 border-b">
-            <h3 class="text-lg font-semibold">Budget Progress</h3>
+        <div class="chart-card">
+            <div class="chart-card__header">
+                <h3>Spending by Category</h3>
+            </div>
+            <div class="chart-card__body">
+                <canvas id="categoryChart"></canvas>
+            </div>
         </div>
-        <div class="p-6 space-y-4">
-            {% for budget in budgets %}
-            <div>
-                <div class="flex justify-between text-sm mb-1">
-                    <span class="font-medium">{{ budget.category }}</span>
-                    <span class="text-gray-500">${{ "%.2f"|format(budget.spent) }} / ${{ "%.2f"|format(budget.limit) }}</span>
+    </div>
+
+    <!-- Bottom Row - Two Columns -->
+    <div class="bottom-row">
+        <!-- Budget Progress Card -->
+        <div class="info-card">
+            <div class="info-card__header">
+                <h3>Budget Progress</h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                </svg>
+            </div>
+            <div class="info-card__body">
+                {% for budget in budgets %}
+                <div class="budget-item">
+                    <div class="budget-item__info">
+                        <span class="budget-item__category">{{ budget.category }}</span>
+                        <span class="budget-item__amount">${{ "%.2f"|format(budget.spent) }} / ${{ "%.2f"|format(budget.limit) }}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-bar__fill" style="width: {{ budget.percentage }}%; background-color: {{ budget.color }}"></div>
+                    </div>
                 </div>
-                <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div class="h-full rounded-full transition-all duration-500" style="width: {{ budget.percentage }}%; background-color: {{ budget.color }}"></div>
-                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
-    </div>
-    
-    <div class="bg-white rounded-xl shadow-sm">
-        <div class="p-6 border-b">
-            <h3 class="text-lg font-semibold">Recent Expenses</h3>
-        </div>
-        <div class="divide-y">
-            {% for expense in recent_expenses %}
-            <div class="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                <div>
-                    <p class="font-medium">{{ expense.name }}</p>
-                    <p class="text-sm text-gray-500">{{ expense.category }} • {{ expense.date }}</p>
-                </div>
-                <p class="text-lg font-semibold" style="color: #ff6600">-${{ "%.2f"|format(expense.amount) }}</p>
+
+        <!-- Recent Expenses Card -->
+        <div class="info-card">
+            <div class="info-card__header">
+                <h3>Recent Expenses</h3>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
             </div>
-            {% endfor %}
+            <div class="info-card__body">
+                {% for expense in recent_expenses %}
+                <div class="expense-item">
+                    <div>
+                        <p class="expense-item__name">{{ expense.name }}</p>
+                        <p class="expense-item__meta">{{ expense.category }} • {{ expense.date }}</p>
+                    </div>
+                    <p class="expense-item__amount">-${{ "%.2f"|format(expense.amount) }}</p>
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </div>
@@ -146,24 +167,36 @@
                 datasets: [{
                     label: 'Income',
                     data: incomeData,
-                    borderColor: '#006699',
-                    backgroundColor: 'rgba(0, 102, 153, 0.1)',
+                    borderColor: '#2c5f8d',
+                    backgroundColor: 'rgba(44, 95, 141, 0.1)',
                     fill: true,
-                    tension: 0.4
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
                 }, {
                     label: 'Expenses',
                     data: monthlyExpensesData,
-                    borderColor: '#ff6600',
-                    backgroundColor: 'rgba(255, 102, 0, 0.1)',
+                    borderColor: '#c4846b',
+                    backgroundColor: 'rgba(196, 132, 107, 0.1)',
                     fill: true,
-                    tension: 0.4
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { usePointStyle: true, padding: 15, boxWidth: 10 }
+                    },
                     tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        padding: 12,
                         callbacks: {
                             label: function(context) {
                                 return context.dataset.label + ': $' + context.raw.toFixed(2);
@@ -174,11 +207,12 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return '$' + value;
-                            }
-                        }
+                        grid: { color: 'rgba(0, 0, 0, 0.05)', drawBorder: false },
+                        ticks: { callback: function(value) { return '$' + value; }, stepSize: 1000 }
+                    },
+                    x: { 
+                        grid: { display: false },
+                        ticks: { font: { size: 12 } }
                     }
                 }
             }
@@ -187,7 +221,7 @@
     
     function initCategoryChart() {
         const ctx = document.getElementById('categoryChart').getContext('2d');
-        const colors = ['#006699', '#669900', '#ff6600', '#cc3399', '#99cc33', '#ffcc00'];
+        const colors = ['#2c5f8d', '#5a9fc9', '#c4846b', '#9a7b6b', '#6b8ea3', '#8db9d9'];
         
         if (categoryChart) categoryChart.destroy();
         categoryChart = new Chart(ctx, {
@@ -197,18 +231,29 @@
                 datasets: [{
                     data: categoryValues,
                     backgroundColor: colors.slice(0, categoryLabels.length),
-                    borderWidth: 2,
-                    borderColor: '#fff'
+                    borderWidth: 0,
+                    hoverOffset: 10
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                cutout: '60%',
                 plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { usePointStyle: true, padding: 10, boxWidth: 10 }
+                    },
                     tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        padding: 12,
                         callbacks: {
                             label: function(context) {
-                                return context.label + ': $' + context.raw.toFixed(2);
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${label}: $${value.toFixed(2)} (${percentage}%)`;
                             }
                         }
                     }
@@ -219,7 +264,7 @@
     
     async function updateIncome() {
         const newIncome = prompt('Enter your monthly income:', monthlyIncome);
-        if (newIncome && !isNaN(newIncome)) {
+        if (newIncome && !isNaN(newIncome) && parseFloat(newIncome) > 0) {
             const response = await fetch('/finance/api/update-income', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -227,6 +272,8 @@
             });
             if (response.ok) {
                 window.location.reload();
+            } else {
+                alert('Failed to update income');
             }
         }
     }
@@ -235,5 +282,14 @@
     
     initTrendChart();
     initCategoryChart();
+    
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            initTrendChart();
+            initCategoryChart();
+        }, 250);
+    });
 </script>
 {% endblock %}
