@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse
 from typing import Dict, List
 from pydantic import BaseModel
 from datetime import datetime
-from app.models.user import SavingsService
+from app.models.user import SavingsContribution, SavingsService
 from app.routers import templates
 from app.dependencies.auth import AuthDep
 from app.utilities.flash import get_flashed_messages
