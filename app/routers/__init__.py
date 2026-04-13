@@ -2,14 +2,9 @@ from fastapi import APIRouter
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from app.config import get_settings
-from jinja2 import FileSystemLoader, Environment
+from app.utilities.flash import get_flashed_messages
 
-
-_env = Environment(
-    loader=FileSystemLoader("app/templates"),
-    auto_reload=True,
-    cache_size=0,
-)
+templates = Jinja2Templates(directory="app/templates")
 
 def min_filter(value, arg):
     try:
@@ -17,12 +12,9 @@ def min_filter(value, arg):
     except (TypeError, ValueError):
         return value
 
-_env.filters['min'] = min_filter
-_env.globals['get_flashed_messages'] = lambda: []
+templates.env.filters['min'] = min_filter
 
-
-templates = Jinja2Templates(directory="app/templates")
-templates.env = _env
+templates.env.globals['get_flashed_messages'] = get_flashed_messages
 
 static_files = StaticFiles(directory="app/static")
 
