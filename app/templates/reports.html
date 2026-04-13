@@ -2,146 +2,251 @@
 
 {% block title %}Financial Reports{% endblock %}
 
+{% block additional_styles %}
+<link href="/static/css/reports.css" rel="stylesheet">
+{% endblock %}
+
 {% block subpage_content %}
-<div class="mb-8">
-    <h1 class="text-3xl font-semibold mb-2">Financial Reports</h1>
-    <p class="text-gray-500">Comprehensive analytics and insights</p>
-</div>
-
-
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4" style="border-left-color: #006699">
-        <p class="text-sm text-gray-500 mb-1">This Month's Spending</p>
-        <p class="text-2xl font-semibold">${{ "%.2f"|format(spending_insights.current_month) }}</p>
-    </div>
-    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4" style="border-left-color: #669900">
-        <p class="text-sm text-gray-500 mb-1">Avg. Monthly Spending</p>
-        <p class="text-2xl font-semibold">${{ "%.2f"|format(spending_insights.average_monthly) }}</p>
-    </div>
-    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4" style="border-left-color: {% if spending_insights.is_decreasing %}#669900{% else %}#ff6600{% endif %}">
-        <p class="text-sm text-gray-500 mb-1">Month over Month</p>
-        <p class="text-2xl font-semibold {% if spending_insights.is_decreasing %}text-green-600{% else %}text-red-600{% endif %}">
-            {{ "%.1f"|format(spending_insights.month_over_month) }}%
-        </p>
-        <p class="text-xs text-gray-500">{{ '↓ Decreasing' if spending_insights.is_decreasing else '↑ Increasing' }}</p>
-    </div>
-    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4" style="border-left-color: #cc3399">
-        <p class="text-sm text-gray-500 mb-1">Active Subscriptions</p>
-        <p class="text-2xl font-semibold">${{ "%.2f"|format(subscription_summary.monthly_cost) }}/mo</p>
-    </div>
-</div>
-
-
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <div class="bg-white rounded-xl p-6 shadow-sm">
-        <h3 class="text-lg font-semibold mb-6">6-Month Financial Trend</h3>
-        <canvas id="trendChart" height="300"></canvas>
-    </div>
-    <div class="bg-white rounded-xl p-6 shadow-sm">
-        <h3 class="text-lg font-semibold mb-6">Spending by Category</h3>
-        <canvas id="categoryChart" height="300"></canvas>
-    </div>
-</div>
-
-
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <div class="bg-white rounded-xl shadow-sm">
-        <div class="p-6 border-b">
-            <h3 class="text-lg font-semibold">Spending Insights</h3>
+<div class="reports-container">
+    <div class="reports-header">
+        <div>
+            <h1>Financial Reports</h1>
+            <p class="text-muted">Comprehensive analytics and insights</p>
         </div>
-        <div class="p-6 space-y-4">
-            <div>
-                <p class="font-medium">Top Spending Category</p>
-                <p class="text-gray-600">{{ top_categories[0].name if top_categories else 'None' }} - ${{ "%.2f"|format(top_categories[0].amount if top_categories else 0) }}</p>
+    </div>
+
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-content">
+                <div class="stat-label">This Month's Spending</div>
+                <div class="stat-value">${{ "%.2f"|format(spending_insights.current_month) }}</div>
             </div>
-            <div>
-                <p class="font-medium">Month-over-Month Change</p>
-                <p class="text-gray-600">{{ 'Decreased' if spending_insights.is_decreasing else 'Increased' }} by {{ "%.1f"|format(spending_insights.month_over_month|abs) }}%</p>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-content">
+                <div class="stat-label">Avg. Monthly Spending</div>
+                <div class="stat-value">${{ "%.2f"|format(spending_insights.average_monthly) }}</div>
             </div>
-            <div>
-                <p class="font-medium">Savings Progress</p>
-                <p class="text-gray-600">{{ "%.1f"|format(savings_summary.progress) }}% of goal achieved</p>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">📉</div>
+            <div class="stat-content">
+                <div class="stat-label">Month over Month</div>
+                <div class="stat-value {% if spending_insights.is_decreasing %}text-success{% else %}text-danger{% endif %}">
+                    {{ "%.1f"|format(spending_insights.month_over_month) }}%
+                </div>
+                <div class="stat-trend {% if spending_insights.is_decreasing %}trend-down{% else %}trend-up{% endif %}">
+                    {{ '↓ Decreasing' if spending_insights.is_decreasing else '↑ Increasing' }}
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🔄</div>
+            <div class="stat-content">
+                <div class="stat-label">Active Subscriptions</div>
+                <div class="stat-value">${{ "%.2f"|format(subscription_summary.monthly_cost) }}</div>
+                <div class="stat-meta">monthly</div>
             </div>
         </div>
     </div>
-    
-    <div class="bg-white rounded-xl shadow-sm">
-        <div class="p-6 border-b">
-            <h3 class="text-lg font-semibold">Top Spending Categories</h3>
+
+    <div class="chart-card">
+        <div class="chart-header">
+            <h3>6-Month Financial Trend</h3>
         </div>
-        <div class="divide-y">
-            {% for cat in top_categories %}
-            <div class="p-4 flex justify-between items-center">
-                <span>{{ cat.name }}</span>
-                <span class="font-semibold">${{ "%.2f"|format(cat.amount) }}</span>
-            </div>
-            {% endfor %}
+        <div class="chart-body">
+            <canvas id="trendChart"></canvas>
         </div>
     </div>
-</div>
 
-
-<div class="bg-white rounded-xl shadow-sm">
-    <div class="p-6 border-b">
-        <h3 class="text-lg font-semibold">Savings Goal Progress</h3>
-    </div>
-    <div class="p-6">
-        <div class="grid grid-cols-3 gap-6 text-center mb-4">
-            <div>
-                <p class="text-sm text-gray-500">Total Saved</p>
-                <p class="text-xl font-semibold">${{ "%.2f"|format(savings_summary.total_saved) }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500">Total Target</p>
-                <p class="text-xl font-semibold">${{ "%.2f"|format(savings_summary.total_target) }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500">Overall Progress</p>
-                <p class="text-xl font-semibold">{{ "%.1f"|format(savings_summary.progress) }}%</p>
-            </div>
+    <div class="category-section">
+        <div class="category-header">
+            <h3>Spending by Category</h3>
         </div>
-        <div class="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
-            <div class="h-full rounded-full transition-all duration-500" style="width: {{ savings_summary.progress }}%; background-color: #669900"></div>
+        <div class="category-body">
+            <div class="category-chart">
+                <canvas id="categoryChart"></canvas>
+            </div>
+            <div class="category-legend">
+                {% for category in category_labels %}
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: {{ category_colors[loop.index0] }}"></span>
+                    <span class="legend-label">{{ category }}</span>
+                    <span class="legend-value">${{ "%.2f"|format(category_values[loop.index0]) }}</span>
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+
     const monthlyLabels = {{ monthly_labels | tojson }};
     const monthlySpending = {{ monthly_spending | tojson }};
     const monthlyIncome = {{ monthly_income | tojson }};
     const categoryLabels = {{ category_labels | tojson }};
     const categoryValues = {{ category_values | tojson }};
     
-  
-    new Chart(document.getElementById('trendChart'), {
-        type: 'line',
-        data: {
-            labels: monthlyLabels,
-            datasets: [
-                { label: 'Income', data: monthlyIncome, borderColor: '#006699', backgroundColor: 'rgba(0, 102, 153, 0.1)', fill: true, tension: 0.4 },
-                { label: 'Expenses', data: monthlySpending, borderColor: '#ff6600', backgroundColor: 'rgba(255, 102, 0, 0.1)', fill: true, tension: 0.4 }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: { y: { ticks: { callback: v => '$' + v } } }
-        }
-    });
+    const categoryColors = ['#35898b', '#4da0a8', '#e8a87c', '#e57373', '#388026', '#f1b74b'];
     
-   
-    new Chart(document.getElementById('categoryChart'), {
-        type: 'doughnut',
-        data: {
-            labels: categoryLabels,
-            datasets: [{
-                data: categoryValues,
-                backgroundColor: ['#006699', '#669900', '#ff6600', '#cc3399', '#99cc33', '#ffcc00']
-            }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
+    let trendChart = null;
+    let categoryChart = null;
+    
+    function initTrendChart() {
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        
+        if (trendChart) trendChart.destroy();
+        trendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: monthlyLabels,
+                datasets: [
+                    {
+                        label: 'Income',
+                        data: monthlyIncome,
+                        borderColor: '#35898b',
+                        backgroundColor: 'rgba(53, 137, 139, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#35898b',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Expenses',
+                        data: monthlySpending,
+                        borderColor: '#e8a87c',
+                        backgroundColor: 'rgba(232, 168, 124, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#e8a87c',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 15,
+                            boxWidth: 10,
+                            font: { size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(2, 72, 70, 0.9)',
+                        titleColor: '#fff',
+                        bodyColor: '#e8f4ef',
+                        padding: 10,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': $' + context.raw.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            },
+                            stepSize: 1000,
+                            font: { size: 11 }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Amount ($)',
+                            color: '#76a19f',
+                            font: { size: 11 }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } },
+                        title: {
+                            display: true,
+                            text: 'Month',
+                            color: '#76a19f',
+                            font: { size: 11 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function initCategoryChart() {
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+        
+        if (categoryChart) categoryChart.destroy();
+        categoryChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    data: categoryValues,
+                    backgroundColor: categoryColors.slice(0, categoryLabels.length),
+                    borderWidth: 0,
+                    hoverOffset: 10,
+                    cutout: '55%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(2, 72, 70, 0.9)',
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `${label}: $${value.toFixed(2)} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    initTrendChart();
+    initCategoryChart();
+    
+
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            initTrendChart();
+            initCategoryChart();
+        }, 250);
     });
 </script>
 {% endblock %}

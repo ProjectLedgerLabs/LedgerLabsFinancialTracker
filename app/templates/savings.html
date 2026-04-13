@@ -2,85 +2,123 @@
 
 {% block title %}Savings Goals{% endblock %}
 
+{% block additional_styles %}
+<link href="/static/css/savings.css" rel="stylesheet">
+{% endblock %}
+
 {% block subpage_content %}
-<div class="mb-8 flex items-center justify-between">
-    <div>
-        <h1 class="text-3xl font-semibold mb-2">Savings Goals</h1>
-        <p class="text-gray-500">Track progress towards your financial goals</p>
+<div class="savings-container">
+    <div class="savings-header">
+        <div>
+            <h1>Savings Goals</h1>
+            <p class="text-muted">Track progress towards your financial goals</p>
+        </div>
+        <button id="addGoalBtn" class="btn-primary">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            New Savings Goal
+        </button>
     </div>
-    <button id="addGoalBtn" class="flex items-center gap-2 px-4 py-2 rounded-lg text-white font-medium hover:opacity-90 transition-opacity" style="background-color: #006699">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-        </svg>
-        New Savings Goal
-    </button>
+
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-content">
+                <div class="stat-label">Total Saved</div>
+                <div class="stat-value">${{ "%.2f"|format(total_saved) }}</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-content">
+                <div class="stat-label">Total Target</div>
+                <div class="stat-value">${{ "%.2f"|format(total_target) }}</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">📈</div>
+            <div class="stat-content">
+                <div class="stat-label">Overall Progress</div>
+                <div class="stat-value">{{ "%.1f"|format(overall_progress) }}%</div>
+                <div class="stat-progress-bar">
+                    <div class="stat-progress-fill" style="width: {{ overall_progress }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="goals-grid">
+        {% for goal in goals %}
+        <div class="goal-card">
+            <div class="goal-header">
+                <div>
+                    <h3 class="goal-title">{{ goal.name }}</h3>
+                    <p class="goal-days">{{ goal.days_left }} days left</p>
+                </div>
+                <div class="goal-percentage">{{ "%.1f"|format((goal.current / goal.target) * 100) }}%</div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ (goal.current / goal.target) * 100 }}%"></div>
+            </div>
+            <div class="goal-stats">
+                <div class="goal-amounts">
+                    <span>Current: <strong>${{ "%.2f"|format(goal.current) }}</strong></span>
+                    <span>Target: <strong>${{ "%.2f"|format(goal.target) }}</strong></span>
+                </div>
+                <div class="goal-remaining">
+                    Remaining: <strong>${{ "%.2f"|format(goal.target - goal.current) }}</strong>
+                </div>
+            </div>
+            <div class="goal-actions">
+                <button class="btn-contribute" data-goal="{{ goal.name }}" data-remaining="{{ goal.target - goal.current }}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Contribute
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
 
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4" style="border-left-color: #006699">
-        <p class="text-sm text-gray-500 mb-1">Total Saved</p>
-        <p class="text-2xl font-semibold">${{ "%.2f"|format(total_saved) }}</p>
-    </div>
-    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4" style="border-left-color: #669900">
-        <p class="text-sm text-gray-500 mb-1">Total Target</p>
-        <p class="text-2xl font-semibold">${{ "%.2f"|format(total_target) }}</p>
-    </div>
-    <div class="bg-white rounded-xl p-6 shadow-sm border-l-4" style="border-left-color: #ff6600">
-        <p class="text-sm text-gray-500 mb-1">Overall Progress</p>
-        <p class="text-2xl font-semibold">{{ "%.1f"|format(overall_progress) }}%</p>
+<div id="contributeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Contribute to Goal</h3>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Goal</label>
+                <input type="text" id="contributeGoalName" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+                <label>Amount ($)</label>
+                <input type="number" step="0.01" id="contributeAmount" class="form-control" required>
+                <p class="form-hint" id="remainingHint"></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary modal-cancel">Cancel</button>
+            <button class="btn-primary" id="confirmContributeBtn">Contribute</button>
+        </div>
     </div>
 </div>
 
 
-<div class="space-y-6">
-    {% for goal in goals %}
-    <div class="bg-white rounded-xl p-6 shadow-sm">
-        <div class="flex justify-between items-start mb-4">
-            <div>
-                <h3 class="text-xl font-semibold">{{ goal.name }}</h3>
-                <p class="text-sm text-gray-500">{{ goal.days_left }} days left</p>
-            </div>
-            <span class="text-lg font-semibold">{{ "%.1f"|format((goal.current / goal.target) * 100) }}%</span>
-        </div>
-        <div class="w-full h-3 bg-gray-100 rounded-full overflow-hidden mb-3">
-            <div class="h-full rounded-full transition-all duration-500" style="width: {{ (goal.current / goal.target) * 100 }}%; background-color: #006699"></div>
-        </div>
-        <div class="flex justify-between items-center">
-            <div>
-                <p class="text-sm text-gray-500">Current: ${{ "%.2f"|format(goal.current) }}</p>
-                <p class="text-sm text-gray-500">Target: ${{ "%.2f"|format(goal.target) }}</p>
-            </div>
-            <button class="contribute-btn px-4 py-2 bg-[#669900] text-white rounded-lg hover:opacity-90 transition-opacity" data-goal="{{ goal.name }}" data-remaining="{{ goal.target - goal.current }}">
-                Contribute
-            </button>
-        </div>
+<div id="toast" class="toast">
+    <div class="toast-header">
+        <strong id="toastTitle">Notification</strong>
+        <button class="toast-close">&times;</button>
     </div>
-    {% endfor %}
-</div>
-
-
-<div id="contributeModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-xl w-full max-w-md mx-4">
-        <div class="p-6 border-b">
-            <h3 class="text-xl font-semibold">Contribute to Goal</h3>
-        </div>
-        <div class="p-6">
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-1">Goal</label>
-                <input type="text" id="contributeGoalName" class="w-full px-3 py-2 border rounded-lg bg-gray-50" readonly>
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-1">Amount ($)</label>
-                <input type="number" step="0.01" id="contributeAmount" class="w-full px-3 py-2 border rounded-lg" required>
-                <p class="text-xs text-gray-500 mt-1" id="remainingHint"></p>
-            </div>
-        </div>
-        <div class="p-6 border-t flex justify-end gap-3">
-            <button id="cancelContributeBtn" class="px-4 py-2 border rounded-lg hover:bg-gray-50">Cancel</button>
-            <button id="confirmContributeBtn" class="px-4 py-2 bg-[#006699] text-white rounded-lg hover:opacity-90">Contribute</button>
-        </div>
-    </div>
+    <div class="toast-body" id="toastMessage"></div>
 </div>
 
 <script>
@@ -88,33 +126,68 @@
     let currentGoal = '';
     let currentRemaining = 0;
     
-    document.querySelectorAll('.contribute-btn').forEach(btn => {
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        const toastBody = document.getElementById('toastMessage');
+        const toastTitle = document.getElementById('toastTitle');
+        const toastHeader = toast.querySelector('.toast-header');
+        
+        toastTitle.textContent = type === 'success' ? 'Success' : 'Error';
+        toastBody.textContent = message;
+        
+        if (type === 'success') {
+            toastHeader.style.backgroundColor = '#388026';
+        } else {
+            toastHeader.style.backgroundColor = '#e57373';
+        }
+        toastHeader.style.color = 'white';
+        
+        toast.classList.add('show');
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                toastHeader.style.backgroundColor = '';
+                toastHeader.style.color = '';
+            }, 300);
+        }, 3000);
+    }
+    
+    document.querySelectorAll('.btn-contribute').forEach(btn => {
         btn.addEventListener('click', () => {
             currentGoal = btn.getAttribute('data-goal');
             currentRemaining = parseFloat(btn.getAttribute('data-remaining'));
             document.getElementById('contributeGoalName').value = currentGoal;
             document.getElementById('remainingHint').textContent = `Remaining: $${currentRemaining.toFixed(2)}`;
             document.getElementById('contributeAmount').value = '';
-            contributeModal.classList.remove('hidden');
-            contributeModal.classList.add('flex');
+            contributeModal.classList.add('show');
         });
     });
     
-    document.getElementById('cancelContributeBtn')?.addEventListener('click', () => {
-        contributeModal.classList.add('hidden');
-        contributeModal.classList.remove('flex');
+    document.querySelector('.modal-close')?.addEventListener('click', () => {
+        contributeModal.classList.remove('show');
+    });
+    
+    document.querySelector('.modal-cancel')?.addEventListener('click', () => {
+        contributeModal.classList.remove('show');
+    });
+    
+    contributeModal.addEventListener('click', (e) => {
+        if (e.target === contributeModal) {
+            contributeModal.classList.remove('show');
+        }
     });
     
     document.getElementById('confirmContributeBtn')?.addEventListener('click', async () => {
         const amount = parseFloat(document.getElementById('contributeAmount').value);
         
         if (isNaN(amount) || amount <= 0) {
-            alert('Please enter a valid amount');
+            showToast('Please enter a valid amount', 'error');
             return;
         }
         
         if (amount > currentRemaining) {
-            alert('Amount exceeds remaining goal');
+            showToast('Amount exceeds remaining goal', 'error');
             return;
         }
         
@@ -125,9 +198,10 @@
         });
         
         if (response.ok) {
-            window.location.reload();
+            showToast(`Successfully contributed $${amount.toFixed(2)} to ${currentGoal}!`, 'success');
+            setTimeout(() => window.location.reload(), 1500);
         } else {
-            alert('Failed to contribute');
+            showToast('Failed to contribute', 'error');
         }
     });
 </script>

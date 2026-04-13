@@ -1,4 +1,3 @@
-// Reports Page JavaScript
 let trendChart = null;
 let categoryChart = null;
 
