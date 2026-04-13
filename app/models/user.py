@@ -407,3 +407,47 @@ class SavingsService:
                 goal["current"] += amount
                 return {"success": True, "goal": goal}
         return {"success": False, "error": "Goal not found"}
+
+#subscriptions_router
+
+class SubscriptionCreate(BaseModel):
+    name: str
+    amount: float
+    category: str
+    billing_cycle: str
+    next_billing: str
+
+class SubscriptionsService:
+    def __init__(self):
+        self.subscriptions = [
+            {"id": 1, "name": "Gym Membership", "amount": 49.99, "category": "Health", 
+             "billing_cycle": "monthly", "next_billing": "2026-05-10", "active": True},
+            {"id": 2, "name": "Software Subscription", "amount": 20.00, "category": "Software", 
+             "billing_cycle": "monthly", "next_billing": "2026-05-12", "active": True},
+            {"id": 3, "name": "Streaming Service A", "amount": 15.99, "category": "Entertainment", 
+             "billing_cycle": "monthly", "next_billing": "2026-05-15", "active": True},
+            {"id": 4, "name": "Music Streaming", "amount": 9.99, "category": "Entertainment", 
+             "billing_cycle": "monthly", "next_billing": "2026-05-20", "active": True},
+            {"id": 5, "name": "Cloud Storage", "amount": 5.00, "category": "Software", 
+             "billing_cycle": "monthly", "next_billing": "2026-05-01", "active": True}
+        ]
+    
+    def get_active_subscriptions(self) -> List[Dict]:
+        return [sub for sub in self.subscriptions if sub["active"]]
+    
+    def get_monthly_cost(self) -> float:
+        return sum(sub["amount"] for sub in self.subscriptions if sub["active"])
+    
+    def get_yearly_projection(self) -> float:
+        return self.get_monthly_cost() * 12
+    
+    def get_upcoming_billing(self, days: int = 30) -> List[Dict]:
+        today = datetime.now().date()
+        upcoming = []
+        for sub in self.subscriptions:
+            if sub["active"]:
+                next_date = datetime.strptime(sub["next_billing"], "%Y-%m-%d").date()
+                days_until = (next_date - today).days
+                if 0 <= days_until <= days:
+                    upcoming.append({**sub, "days_until": days_until})
+        return sorted(upcoming, key=lambda x: x["days_until"])
