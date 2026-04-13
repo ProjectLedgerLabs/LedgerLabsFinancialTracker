@@ -362,3 +362,48 @@ class ReportsService:
     def get_top_expense_categories(self, limit: int = 3) -> List[Dict]:
         sorted_categories = sorted(self.category_data.items(), key=lambda x: x[1], reverse=True)
         return [{"name": cat, "amount": amt} for cat, amt in sorted_categories[:limit]]
+
+
+#savings_router
+class SavingsGoalCreate(BaseModel):
+    name: str
+    target: float
+    current: float
+    target_date: str
+
+class SavingsContribution(BaseModel):
+    goal_name: str
+    amount: float
+
+class SavingsService:
+    def __init__(self):
+        self.savings_goals = [
+            {"name": "Emergency Fund", "current": 6500.00, "target": 10000.00, "target_date": "2026-12-31"},
+            {"name": "Vacation", "current": 1200.00, "target": 3000.00, "target_date": "2026-08-15"},
+            {"name": "New Laptop", "current": 1850.00, "target": 2500.00, "target_date": "2026-06-30"}
+        ]
+    
+    def get_all_goals(self) -> List[Dict]:
+        today = datetime.now().date()
+        for goal in self.savings_goals:
+            target_date = datetime.strptime(goal["target_date"], "%Y-%m-%d").date()
+            goal["days_left"] = max(0, (target_date - today).days)
+        return self.savings_goals
+    
+    def get_total_saved(self) -> float:
+        return sum(goal["current"] for goal in self.savings_goals)
+    
+    def get_total_target(self) -> float:
+        return sum(goal["target"] for goal in self.savings_goals)
+    
+    def get_overall_progress(self) -> float:
+        total_saved = self.get_total_saved()
+        total_target = self.get_total_target()
+        return round((total_saved / total_target) * 100, 1) if total_target > 0 else 0
+    
+    def contribute_to_goal(self, goal_name: str, amount: float) -> Dict:
+        for goal in self.savings_goals:
+            if goal["name"] == goal_name:
+                goal["current"] += amount
+                return {"success": True, "goal": goal}
+        return {"success": False, "error": "Goal not found"}
