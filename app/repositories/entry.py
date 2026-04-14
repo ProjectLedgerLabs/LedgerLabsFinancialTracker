@@ -1,3 +1,4 @@
+from sqlalchemy import extract
 from sqlmodel import Session, select, func
 from app.models.user import Entry, Category, EntryType, Subscription, Status, BillingCycle
 from typing import Optional, List, Dict
@@ -128,13 +129,19 @@ class EntryRepository:
         entry_total = round(self.db.exec(stmt).one() or 0.0, 2)
         return round(entry_total + self._sub_monthly_total(user_id), 2)
 
+    def _filter_by_month(self, date_column, year: int, month: int):
+        return (
+            extract('year', date_column) == year,
+            extract('month', date_column) == month,
+        )
+
     def get_monthly_income(self, user_id: int) -> float:
         """Sum of all INCOME entries for the current calendar month."""
         now = datetime.now()
         stmt = select(func.sum(Entry.amount)).where(
             Entry.user_id == user_id,
             Entry.type == EntryType.INCOME,
-            func.strftime('%Y-%m', Entry.date) == datetime.now().strftime('%Y-%m')
+            *self._filter_by_month(Entry.date, now.year, now.month),
         )
         return round(self.db.exec(stmt).one() or 0.0, 2)
 
@@ -159,13 +166,12 @@ class EntryRepository:
 
     def get_expenses_by_month(self, user_id: int, year: int, month: int) -> List[Dict]:
         """Entry expenses for a specific month (used by calendar)."""
-        month_str = f"{year}-{month:02d}"
         stmt = (
             select(Entry)
             .where(
                 Entry.user_id == user_id,
                 Entry.type == EntryType.EXPENSE,
-                func.strftime('%Y-%m', Entry.date) == month_str,
+                *self._filter_by_month(Entry.date, year, month),
             )
             .order_by(Entry.date)
         )
@@ -189,7 +195,7 @@ class EntryRepository:
             stmt = select(func.sum(Entry.amount)).where(
                 Entry.user_id == user_id,
                 Entry.type == EntryType.EXPENSE,
-                func.strftime('%Y-%m', Entry.date) == month_str,
+                *self._filter_by_month(Entry.date, year, month),
             )
             entry_total = round(self.db.exec(stmt).one() or 0.0, 2)
             # Add subscription costs to every month they're active
@@ -211,7 +217,7 @@ class EntryRepository:
             stmt = select(func.sum(Entry.amount)).where(
                 Entry.user_id == user_id,
                 Entry.type == EntryType.INCOME,
-                func.strftime('%Y-%m', Entry.date) == month_str,
+                *self._filter_by_month(Entry.date, year, month),
             )
             total = round(self.db.exec(stmt).one() or 0.0, 2)
             labels.append(month_abbr[month])
@@ -252,12 +258,11 @@ class EntryRepository:
     def set_monthly_income(self, user_id: int, amount: float, date: Optional[datetime] = None) -> Dict:
         """Replace the manual income entry for the current month with a new amount."""
         date = date or datetime.now()
-        month_str = date.strftime("%Y-%m")
         existing_entries = self.db.exec(
             select(Entry).where(
                 Entry.user_id == user_id,
                 Entry.type == EntryType.INCOME,
-                func.strftime('%Y-%m', Entry.date) == month_str,
+                *self._filter_by_month(Entry.date, date.year, date.month),
                 Entry.description == "Manual income update",
             )
         ).all()
