@@ -2,6 +2,41 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     
+    // Month navigation
+    const prevBtn = document.getElementById('prevMonth');
+    const nextBtn = document.getElementById('nextMonth');
+    
+    if (prevBtn || nextBtn) {
+        // Get current year and month from URL
+        const params = new URLSearchParams(window.location.search);
+        const currentYear = parseInt(params.get('year')) || new Date().getFullYear();
+        const currentMonth = parseInt(params.get('month')) || new Date().getMonth() + 1;
+        
+        if (prevBtn) {
+            prevBtn.addEventListener('click', function() {
+                let year = currentYear;
+                let month = currentMonth - 1;
+                if (month < 1) {
+                    month = 12;
+                    year -= 1;
+                }
+                window.location.href = `/calendar/?year=${year}&month=${month}`;
+            });
+        }
+        
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function() {
+                let year = currentYear;
+                let month = currentMonth + 1;
+                if (month > 12) {
+                    month = 1;
+                    year += 1;
+                }
+                window.location.href = `/calendar/?year=${year}&month=${month}`;
+            });
+        }
+    }
+    
     // Toggle sidebar
     const toggleBtn = document.getElementById('menu-toggle');
     if (toggleBtn) {
