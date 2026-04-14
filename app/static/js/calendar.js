@@ -37,14 +37,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Toggle sidebar
-    const toggleBtn = document.getElementById('menu-toggle');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', function() {
-            document.getElementById('sidebar').classList.toggle('collapsed');
-        });
-    }
-    
     // Add click handlers to calendar events
     const calendarEvents = document.querySelectorAll('.calendar-event');
     calendarEvents.forEach(function(eventEl) {

@@ -139,6 +139,33 @@
     </div>
 </div>
 
+<!-- Income Modal -->
+<div class="modal fade" id="incomeModal" tabindex="-1" aria-labelledby="incomeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="incomeModalLabel">Set Monthly Income</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="incomeForm">
+                    <div class="mb-3">
+                        <label for="incomeInput" class="form-label">Monthly Income</label>
+                        <input type="number" min="0" step="0.01" class="form-control" id="incomeInput" value="{{ "%.2f"|format(monthly_income) }}" required>
+                        <div class="invalid-feedback">
+                            Please enter a valid monthly income.
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveIncomeBtn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const monthlyIncome = {{ monthly_income }};
@@ -257,24 +284,43 @@
         });
     }
     
-    async function updateIncome() {
-        const newIncome = prompt('Enter your monthly income:', monthlyIncome);
-        if (newIncome && !isNaN(newIncome) && parseFloat(newIncome) > 0) {
-            const response = await fetch('/finance/api/update-income', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ income: parseFloat(newIncome) })
-            });
-            if (response.ok) {
-                window.location.reload();
-            } else {
-                alert('Failed to update income');
-            }
+    const incomeModal = new bootstrap.Modal(document.getElementById('incomeModal'));
+    const incomeInput = document.getElementById('incomeInput');
+    const saveIncomeBtn = document.getElementById('saveIncomeBtn');
+    const incomeForm = document.getElementById('incomeForm');
+
+    function showIncomeModal() {
+        incomeInput.value = monthlyIncome.toFixed(2);
+        incomeInput.classList.remove('is-invalid');
+        incomeModal.show();
+    }
+
+    async function submitIncome() {
+        const newIncomeValue = parseFloat(incomeInput.value);
+        if (isNaN(newIncomeValue) || newIncomeValue <= 0) {
+            incomeInput.classList.add('is-invalid');
+            return;
+        }
+
+        const response = await fetch('/finance/api/update-income', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ income: newIncomeValue })
+        });
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            incomeInput.classList.add('is-invalid');
         }
     }
-    
-    document.getElementById('setIncomeBtn')?.addEventListener('click', updateIncome);
-    
+
+    document.getElementById('setIncomeBtn')?.addEventListener('click', showIncomeModal);
+    saveIncomeBtn?.addEventListener('click', submitIncome);
+    incomeForm?.addEventListener('submit', function (event) {
+        event.preventDefault();
+        submitIncome();
+    });
+
     initTrendChart();
     initCategoryChart();
     

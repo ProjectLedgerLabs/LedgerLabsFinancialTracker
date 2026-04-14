@@ -1,10 +1,6 @@
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('menu-toggle')?.addEventListener('click', () => {
-        document.getElementById('sidebar').classList.toggle('collapsed');
-    });
-
     // Edit budget modal
     let editModal = null;
     let currentCategory = '';

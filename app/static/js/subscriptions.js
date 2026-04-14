@@ -29,16 +29,6 @@ function showToast(message, type = 'success') {
 }
 
 
-function initSidebar() {
-    const toggleBtn = document.getElementById('menu-toggle');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('collapsed');
-        });
-    }
-}
-
-
 async function loadSubscriptions() {
     try {
         const response = await fetch('/subscriptions/api/subscriptions/active');
@@ -155,10 +145,52 @@ function renderSubscriptions() {
     });
     
     document.querySelectorAll('.delete-sub').forEach(btn => {
-        btn.addEventListener('click', () => deleteSubscription(parseInt(btn.dataset.id)));
+        btn.addEventListener('click', () => {
+            const id = parseInt(btn.dataset.id);
+            const subscription = currentSubscriptions.find(sub => sub.id === id);
+            showDeleteSubscriptionModal(id, subscription ? subscription.name : 'this subscription');
+        });
     });
 }
 
+function showDeleteSubscriptionModal(id, name) {
+    const deleteIdInput = document.getElementById('deleteSubId');
+    const message = document.getElementById('deleteSubscriptionMessage');
+    if (deleteIdInput) deleteIdInput.value = id;
+    if (message) message.textContent = `Are you sure you want to delete "${name}"?`;
+    const deleteModalEl = document.getElementById('deleteSubscriptionModal');
+    if (deleteModalEl) {
+        const modal = new bootstrap.Modal(deleteModalEl);
+        modal.show();
+    }
+}
+
+async function deleteSubscription(id) {
+    const deleteIdInput = document.getElementById('deleteSubId');
+    if (!deleteIdInput || !deleteIdInput.value) return;
+    id = parseInt(deleteIdInput.value);
+
+    try {
+        const response = await fetch(`/subscriptions/api/subscriptions/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            showToast('Subscription deleted successfully!', 'success');
+            await loadSubscriptions();
+            const deleteModalEl = document.getElementById('deleteSubscriptionModal');
+            if (deleteModalEl) {
+                const modal = bootstrap.Modal.getInstance(deleteModalEl);
+                if (modal) modal.hide();
+            }
+        } else {
+            showToast('Failed to delete subscription', 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting subscription:', error);
+        showToast('Network error occurred', 'error');
+    }
+}
 
 function escapeHtml(text) {
     const div = document.createElement('div');
@@ -233,8 +265,10 @@ async function updateSubscription(id, updates) {
 
 
 async function deleteSubscription(id) {
-    if (!confirm('Are you sure you want to delete this subscription?')) return;
-    
+    const deleteIdInput = document.getElementById('deleteSubId');
+    if (!deleteIdInput || !deleteIdInput.value) return;
+    id = parseInt(deleteIdInput.value);
+
     try {
         const response = await fetch(`/subscriptions/api/subscriptions/${id}`, {
             method: 'DELETE'
@@ -243,12 +277,29 @@ async function deleteSubscription(id) {
         if (response.ok) {
             showToast('Subscription deleted successfully!', 'success');
             await loadSubscriptions();
+            const deleteModalEl = document.getElementById('deleteSubscriptionModal');
+            if (deleteModalEl) {
+                const modal = bootstrap.Modal.getInstance(deleteModalEl);
+                if (modal) modal.hide();
+            }
         } else {
             showToast('Failed to delete subscription', 'error');
         }
     } catch (error) {
         console.error('Error deleting subscription:', error);
         showToast('Network error occurred', 'error');
+    }
+}
+
+function initSidebarToggleFallback() {
+    if (window.__sidebarToggleAttached) return;
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+    if (menuToggle && sidebar) {
+        menuToggle.addEventListener('click', function () {
+            sidebar.classList.toggle('collapsed');
+        });
+        window.__sidebarToggleAttached = true;
     }
 }
 
@@ -272,6 +323,8 @@ function initModal() {
         });
     }
     
+    const confirmDeleteBtn = document.getElementById('confirmDeleteSubBtn');
+
     if (saveBtn) {
         saveBtn.addEventListener('click', async () => {
             const id = document.getElementById('subId').value;
@@ -310,10 +363,28 @@ function initModal() {
             }
         });
     }
+
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', async () => {
+            await deleteSubscription();
+        });
+    }
+}
+
+function initSidebarToggleFallback() {
+    if (window.__sidebarToggleAttached) return;
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+    if (menuToggle && sidebar) {
+        menuToggle.addEventListener('click', function () {
+            sidebar.classList.toggle('collapsed');
+        });
+        window.__sidebarToggleAttached = true;
+    }
 }
 
 async function init() {
-    initSidebar();
+    initSidebarToggleFallback();
     initModal();
     await loadSubscriptions();
 }
