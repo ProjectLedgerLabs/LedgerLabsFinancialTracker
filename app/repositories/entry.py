@@ -134,7 +134,7 @@ class EntryRepository:
         stmt = select(func.sum(Entry.amount)).where(
             Entry.user_id == user_id,
             Entry.type == EntryType.INCOME,
-            func.to_char(Entry.date, 'YYYY-MM') == now.strftime("%Y-%m"),
+            func.strftime('%Y-%m', Entry.date) == datetime.now().strftime('%Y-%m')
         )
         return round(self.db.exec(stmt).one() or 0.0, 2)
 
@@ -165,7 +165,7 @@ class EntryRepository:
             .where(
                 Entry.user_id == user_id,
                 Entry.type == EntryType.EXPENSE,
-                func.to_char(Entry.date, 'YYYY-MM') == month_str,
+                func.strftime('%Y-%m', Entry.date) == month_str,
             )
             .order_by(Entry.date)
         )
@@ -189,7 +189,7 @@ class EntryRepository:
             stmt = select(func.sum(Entry.amount)).where(
                 Entry.user_id == user_id,
                 Entry.type == EntryType.EXPENSE,
-                func.to_char(Entry.date, 'YYYY-MM') == month_str,
+                func.strftime('%Y-%m', Entry.date) == month_str,
             )
             entry_total = round(self.db.exec(stmt).one() or 0.0, 2)
             # Add subscription costs to every month they're active
@@ -211,7 +211,7 @@ class EntryRepository:
             stmt = select(func.sum(Entry.amount)).where(
                 Entry.user_id == user_id,
                 Entry.type == EntryType.INCOME,
-                func.to_char(Entry.date, 'YYYY-MM') == month_str,
+                func.strftime('%Y-%m', Entry.date) == month_str,
             )
             total = round(self.db.exec(stmt).one() or 0.0, 2)
             labels.append(month_abbr[month])
@@ -257,7 +257,7 @@ class EntryRepository:
             select(Entry).where(
                 Entry.user_id == user_id,
                 Entry.type == EntryType.INCOME,
-                func.to_char(Entry.date, 'YYYY-MM') == month_str,
+                func.strftime('%Y-%m', Entry.date) == month_str,
                 Entry.description == "Manual income update",
             )
         ).all()
