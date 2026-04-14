@@ -4,7 +4,7 @@
     align-items: center;
     gap: 8px;
     padding: 10px 20px;
-    background: #024846;
+    background: #6390C3;
     border: none;
     border-radius: var(--radius-lg);
     font-size: 14px;
@@ -71,7 +71,7 @@
   transition: transform 0.2s ease;
 }
 
-/* Card 1 - Monthly Income (Blue theme) */
+/* Card 1 - Monthly Income */
 .stat-card:nth-child(1) {
   background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 100%);
   border-left: 4px solid #35898b;
@@ -86,22 +86,22 @@
   box-shadow: 0 8px 24px rgba(53, 137, 139, 0.15);
 }
 
-/* Card 2 - Total Expenses (Orange/Peach theme) */
+/* Card 2 - Total Expenses */
 .stat-card:nth-child(2) {
   background: linear-gradient(135deg, #ffffff 0%, #fbf6f1 100%);
-  border-left: 4px solid #e8a87c;
+  border-left: 4px solid #E15534;
 }
 
 .stat-card:nth-child(2)::before {
-  background: linear-gradient(90deg, #e8a87c, #f1b74b);
+  background: linear-gradient(90deg, #E15534, #F1B74B);
 }
 
 .stat-card:nth-child(2):hover {
   background: linear-gradient(135deg, #fbf6f1 0%, #ffffff 100%);
-  box-shadow: 0 8px 24px rgba(232, 168, 124, 0.15);
+  box-shadow: 0 8px 24px rgba(225, 85, 52, 0.15);
 }
 
-/* Card 3 - Burn Rate (Green theme) */
+/* Card 3 - Burn Rate*/
 .stat-card:nth-child(3) {
   background: linear-gradient(135deg, #ffffff 0%, #e8f4ef 100%);
   border-left: 4px solid #4CAF50;
@@ -116,10 +116,10 @@
   box-shadow: 0 8px 24px rgba(76, 175, 80, 0.15);
 }
 
-/* Card 4 - Savings Rate (Purple/Red theme) */
+/* Card 4 - Savings Rate*/
 .stat-card:nth-child(4) {
   background: linear-gradient(135deg, #ffffff 0%, #e8e5ff 100%);
-  border-left: 4px solid #e57373;
+  border-left: 4px solid #E15534;
 }
 
 .stat-card:nth-child(4)::before {
@@ -375,7 +375,7 @@
   color: var(--accent-orange);
 }
 
-/* Responsive */
+/* Responsive mobile screen*/
 @media (max-width: 1200px) {
   .stats-grid {
     gap: 16px;
