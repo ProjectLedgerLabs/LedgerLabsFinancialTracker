@@ -90,3 +90,9 @@ class SavingsGoal(SQLModel, table=True):
     description: Optional[str] = None
     deadline: Optional[datetime] = None
     user_rel: Optional["User"] = Relationship(back_populates="savings_goals")
+
+class BudgetLimit(SQLModel, table=True):
+    budget_id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: Optional[int] = Field(default=None, foreign_key="user.user_id")
+    category_id: Optional[int] = Field(default=None, foreign_key="category.category_id")
+    limit_amount: float

@@ -1,76 +1,101 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
-from typing import Dict, List
 from app.routers import templates
 from app.dependencies.auth import AuthDep
+from app.dependencies.session import SessionDep
 from app.utilities.flash import get_flashed_messages
+from app.repositories.entry import EntryRepository
+from app.repositories.subscription import SubscriptionRepository
+from app.repositories.savings import SavingsRepository
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
-class ReportsService:
-    def __init__(self):
-        self.monthly_labels = ["Nov", "Dec", "Jan", "Feb", "Mar", "Apr"]
-        self.monthly_spending = [4200, 3800, 3433, 3100, 2950, 2800]
-        self.monthly_income = [5000, 5000, 5000, 5000, 5000, 5000]
-        
-        self.category_data = {
-            "Food": 258.57, "Transportation": 65.00, "Entertainment": 34.00,
-            "Health": 49.99, "Software": 30.98, "Utilities": 180.00
-        }
-        
-        self.current_month_spending = 2800.00
-        self.previous_month_spending = 3100.00
-        self.average_monthly_spending = 3433.33
-        
-        self._savings_data = {
-            "total_saved": 9550.00,
-            "total_target": 15500.00,
-            "progress": 61.6
-        }
-    
-    def get_spending_insights(self) -> Dict:
-        month_over_month = ((self.current_month_spending - self.previous_month_spending) / self.previous_month_spending) * 100
-        return {
-            "current_month": self.current_month_spending,
-            "previous_month": self.previous_month_spending,
-            "average_monthly": self.average_monthly_spending,
-            "month_over_month": round(month_over_month, 1),
-            "is_decreasing": month_over_month < 0
-        }
-    
-    def get_subscription_summary(self) -> Dict:
-        subscriptions = [
-            {"name": "Gym Membership", "amount": 49.99, "nextBilling": "2026-04-10"},
-            {"name": "Software Subscription", "amount": 20.00, "nextBilling": "2026-04-12"},
-            {"name": "Streaming Service A", "amount": 15.99, "nextBilling": "2026-04-15"},
-            {"name": "Music Streaming", "amount": 9.99, "nextBilling": "2026-04-20"}
-        ]
-        total_monthly = sum(sub["amount"] for sub in subscriptions)
-        return {
-            "monthly_cost": total_monthly,
-            "yearly_projection": total_monthly * 12,
-            "active_services": len(subscriptions),
-            "subscriptions": subscriptions
-        }
-    
-    def get_savings_summary(self) -> Dict:
-        return self._savings_data
-    
-    def get_top_expense_categories(self, limit: int = 3) -> List[Dict]:
-        sorted_categories = sorted(self.category_data.items(), key=lambda x: x[1], reverse=True)
-        return [{"name": cat, "amount": amt} for cat, amt in sorted_categories[:limit]]
+CATEGORY_COLORS = [
+    "#35898b", "#4da0a8", "#e8a87c", "#e57373", "#388026", "#f1b74b",
+]
 
-reports_service = ReportsService()
+
+def _build_report_data(user_id: int, db) -> dict:
+    entry_repo = EntryRepository(db)
+    sub_repo = SubscriptionRepository(db)
+    savings_repo = SavingsRepository(db)
+
+    # ── 6-month history ──────────────────────────────────────────────
+    expense_history = entry_repo.get_monthly_expense_totals(user_id, num_months=6)
+    income_history = entry_repo.get_monthly_income_totals(user_id, num_months=6)
+    monthly_labels = expense_history["labels"]
+    monthly_spending = expense_history["totals"]
+    monthly_income_data = income_history["totals"]
+
+    # ── Spending insights ────────────────────────────────────────────
+    current_month = monthly_spending[-1] if monthly_spending else 0.0
+    previous_month = monthly_spending[-2] if len(monthly_spending) >= 2 else 0.0
+    non_zero = [m for m in monthly_spending if m > 0]
+    average_monthly = round(sum(non_zero) / len(non_zero), 2) if non_zero else 0.0
+    mom_change = (
+        round(((current_month - previous_month) / previous_month) * 100, 1)
+        if previous_month > 0 else 0.0
+    )
+    spending_insights = {
+        "current_month": current_month,
+        "previous_month": previous_month,
+        "average_monthly": average_monthly,
+        "month_over_month": mom_change,
+        "is_decreasing": mom_change < 0,
+    }
+
+    # ── Category breakdown (current month only) ──────────────────────
+    category_data = entry_repo.get_category_spending(user_id)
+
+    # ── Top expense categories ───────────────────────────────────────
+    sorted_cats = sorted(category_data.items(), key=lambda x: x[1], reverse=True)
+    top_categories = [{"name": cat, "amount": amt} for cat, amt in sorted_cats[:3]]
+
+    # ── Subscription summary ─────────────────────────────────────────
+    active_subs = sub_repo.get_active(user_id)
+    monthly_sub_cost = sub_repo.get_monthly_cost(user_id)
+    subscription_summary = {
+        "monthly_cost": monthly_sub_cost,
+        "yearly_projection": round(monthly_sub_cost * 12, 2),
+        "active_services": len(active_subs),
+        "subscriptions": [
+            {
+                "name": s["name"],
+                "amount": s["amount"],
+                "nextBilling": s["next_billing"],
+            }
+            for s in active_subs
+        ],
+    }
+
+    # ── Savings summary ──────────────────────────────────────────────
+    savings_summary = {
+        "total_saved": savings_repo.get_total_saved(user_id),
+        "total_target": savings_repo.get_total_target(user_id),
+        "progress": savings_repo.get_overall_progress(user_id),
+    }
+
+    return {
+        "monthly_labels": monthly_labels,
+        "monthly_spending": monthly_spending,
+        "monthly_income": monthly_income_data,
+        "category_labels": list(category_data.keys()),
+        "category_values": list(category_data.values()),
+        "category_colors": CATEGORY_COLORS,
+        "spending_insights": spending_insights,
+        "subscription_summary": subscription_summary,
+        "savings_summary": savings_summary,
+        "top_categories": top_categories,
+    }
+
+
+# ------------------------------------------------------------------ #
+#  Page route                                                          #
+# ------------------------------------------------------------------ #
 
 @router.get("/", response_class=HTMLResponse)
-async def reports_page(request: Request, user: AuthDep):
-    spending_insights = reports_service.get_spending_insights()
-    subscription_summary = reports_service.get_subscription_summary()
-    savings_summary = reports_service.get_savings_summary()
-    top_categories = reports_service.get_top_expense_categories()
-    
-    category_colors = ['#35898b', '#4da0a8', '#e8a87c', '#e57373', '#388026', '#f1b74b']
-    
+async def reports_page(request: Request, user: AuthDep, db: SessionDep):
+    data = _build_report_data(user.user_id, db)
     return templates.TemplateResponse(
         request=request,
         name="reports.html",
@@ -78,15 +103,44 @@ async def reports_page(request: Request, user: AuthDep):
             "flash_messages": get_flashed_messages(request),
             "user": user,
             "active_page": "reports",
-            "monthly_labels": reports_service.monthly_labels,
-            "monthly_spending": reports_service.monthly_spending,
-            "monthly_income": reports_service.monthly_income,
-            "category_labels": list(reports_service.category_data.keys()),
-            "category_values": list(reports_service.category_data.values()),
-            "category_colors": category_colors,
-            "spending_insights": spending_insights,
-            "subscription_summary": subscription_summary,
-            "savings_summary": savings_summary,
-            "top_categories": top_categories,
-        }
+            **data,
+        },
     )
+
+
+# ------------------------------------------------------------------ #
+#  API routes                                                          #
+# ------------------------------------------------------------------ #
+
+@router.get("/api/reports/summary")
+async def get_reports_summary(user: AuthDep, db: SessionDep):
+    return _build_report_data(user.user_id, db)
+
+
+@router.get("/api/reports/spending-insights")
+async def get_spending_insights(user: AuthDep, db: SessionDep):
+    data = _build_report_data(user.user_id, db)
+    return data["spending_insights"]
+
+
+@router.get("/api/reports/category-breakdown")
+async def get_category_breakdown(user: AuthDep, db: SessionDep):
+    category_data = EntryRepository(db).get_category_spending(user.user_id)
+    sorted_cats = sorted(category_data.items(), key=lambda x: x[1], reverse=True)
+    return {
+        "labels": [c[0] for c in sorted_cats],
+        "values": [c[1] for c in sorted_cats],
+        "colors": CATEGORY_COLORS[: len(sorted_cats)],
+    }
+
+
+@router.get("/api/reports/monthly-trend")
+async def get_monthly_trend(user: AuthDep, db: SessionDep, months: int = 6):
+    entry_repo = EntryRepository(db)
+    expense_history = entry_repo.get_monthly_expense_totals(user.user_id, num_months=months)
+    income_history = entry_repo.get_monthly_income_totals(user.user_id, num_months=months)
+    return {
+        "labels": expense_history["labels"],
+        "spending": expense_history["totals"],
+        "income": income_history["totals"],
+    }

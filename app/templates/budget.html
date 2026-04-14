@@ -4,81 +4,293 @@
 
 {% block additional_styles %}
 <link href="/static/css/budget.css" rel="stylesheet">
+<style>
+  .budget-actions { display: flex; gap: 0.5rem; align-items: center; }
+  .btn-icon {
+    background: none; border: none; cursor: pointer; padding: 0.25rem 0.4rem;
+    border-radius: 0.375rem; transition: background 0.15s;
+  }
+  .btn-icon:hover { background: rgba(0,0,0,0.06); }
+  .btn-icon svg { width: 1rem; height: 1rem; }
+  .over-budget { color: #dc3545 !important; }
+  .add-budget-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1.1rem; background: #006699; color: #fff;
+    border: none; border-radius: 0.5rem; font-size: 0.875rem;
+    font-weight: 500; cursor: pointer; transition: background 0.15s;
+  }
+  .add-budget-btn:hover { background: #005580; }
+  .empty-state {
+    text-align: center; padding: 3rem 1rem; color: #6c757d;
+    background: white; border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .empty-state p { margin-top: 0.5rem; font-size: 0.9rem; }
+</style>
 {% endblock %}
 
 {% block subpage_content %}
 <div class="budget-container">
-    <div class="mb-8">
-        <h1>Budget Management</h1>
-        <p class="text-muted">Track spending against your budget</p>
-    </div>
 
-    <div class="summary-cards">
-        <div class="summary-card allocated">
-            <div class="card-label">Total Allocated</div>
-            <div class="card-value">${{ total_allocated }}</div>
-        </div>
-        <div class="summary-card spent">
-            <div class="card-label">Total Spent</div>
-            <div class="card-value">${{ total_spent }}</div>
-        </div>
-        <div class="summary-card remaining">
-            <div class="card-label">Remaining</div>
-            <div class="card-value">${{ "%.2f"|format(total_allocated|float - total_spent|float) }}</div>
-        </div>
-        <div class="summary-card progress">
-            <div class="card-label">Total Progress</div>
-            <div class="card-value">{{ overall_progress }}%</div>
-            <div class="card-sub">of total budget used</div>
-        </div>
+  <!-- Header -->
+  <div class="mb-8" style="display:flex; justify-content:space-between; align-items:flex-end;">
+    <div>
+      <h1>Budget Management</h1>
+      <p class="text-muted">Set and track spending limits per category</p>
     </div>
+    <button class="add-budget-btn" id="addCategoryBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 4v16m8-8H4"/>
+      </svg>
+      Add Budget
+    </button>
+  </div>
 
-    <div class="overall-progress-card">
-        <div class="progress-header">
-            <div>
-                <div class="progress-title">Overall Budget Progress</div>
-                <div class="progress-amount">${{ total_spent }} / ${{ total_allocated }}</div>
-                <div class="progress-percentage">{{ overall_progress }}% of total budget used</div>
-            </div>
-            <div class="progress-icon">
-                <svg class="w-8 h-8" style="color: #669900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                </svg>
-            </div>
-        </div>
-        <div class="progress-bar-container">
-            <div class="progress-bar-fill" style="width: {{ overall_progress }}%"></div>
-        </div>
+  <!-- Summary Cards -->
+  <div class="summary-cards">
+    <div class="summary-card allocated">
+      <div class="card-label">Total Allocated</div>
+      <div class="card-value">${{ total_allocated }}</div>
     </div>
+    <div class="summary-card spent">
+      <div class="card-label">Total Spent</div>
+      <div class="card-value">${{ total_spent }}</div>
+    </div>
+    <div class="summary-card remaining">
+      <div class="card-label">Remaining</div>
+      <div class="card-value">${{ total_remaining }}</div>
+    </div>
+    <div class="summary-card border-left-color: #cc3399">
+      <div class="card-label">Total Progress</div>
+      <div class="card-value">{{ overall_progress }}%</div>
+      <div class="card-sub">of total budget used</div>
+    </div>
+  </div>
 
-    <!-- Budget Categories Grid -->
-    <div class="budget-grid">
-        {% for budget in budgets %}
-        <div class="budget-card">
-            <div class="budget-card-header">
-                <div class="budget-category-info">
-                    <div class="budget-category-name">
-                        <h3>{{ budget.category }}</h3>
-                        {% if budget.percentage > 100 %}
-                        <svg class="warning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        {% endif %}
-                    </div>
-                    <div class="budget-spent-text">${{ "%.2f"|format(budget.spent) }} of ${{ "%.2f"|format(budget.limit) }} spent</div>
-                </div>
-                <div class="budget-percentage">
-                    <div class="budget-percentage-value" style="color: {{ budget.color }}">{{ "%.1f"|format(budget.percentage) }}%</div>
-                    <div class="budget-remaining">${{ "%.2f"|format(budget.remaining) }} remaining</div>
-                </div>
-            </div>
-            <div class="budget-progress">
-                <div class="progress-track">
-                    <div class="progress-fill {{ budget.category|lower }}" style="width: {% if budget.percentage > 100 %}100{% else %}{{ budget.percentage }}{% endif %}%"></div>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
+  <!-- Overall Progress Bar -->
+  <div class="overall-progress-card">
+    <div class="progress-header">
+      <div>
+        <div class="progress-title">Overall Budget Progress</div>
+        <div class="progress-amount">${{ total_spent }} / ${{ total_allocated }}</div>
+        <div class="progress-percentage">{{ overall_progress }}% of total budget used</div>
+      </div>
+      <div class="progress-icon">
+        <svg class="w-8 h-8" style="color:#669900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+        </svg>
+      </div>
     </div>
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" style="width:{{ overall_progress }}%"></div>
+    </div>
+  </div>
+
+  <!-- Budget Categories Grid -->
+  {% if budgets %}
+  <div class="budget-grid">
+    {% for budget in budgets %}
+    <div class="budget-card">
+      <div class="budget-card-header">
+        <div class="budget-category-info">
+          <div class="budget-category-name">
+            <h3>{{ budget.category }}</h3>
+            {% if budget.over_budget %}
+            <svg class="warning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {% endif %}
+          </div>
+          <div class="budget-spent-text">
+            ${{ "%.2f"|format(budget.spent) }} of ${{ "%.2f"|format(budget.limit) }} spent
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.25rem;">
+          <div class="budget-percentage">
+            <div class="budget-percentage-value {% if budget.over_budget %}over-budget{% endif %}"
+                 style="color:{{ budget.color }}">
+              {{ "%.1f"|format(budget.percentage) }}%
+            </div>
+            <div class="budget-remaining {% if budget.over_budget %}over-budget{% endif %}">
+              {% if budget.over_budget %}
+                ${{ "%.2f"|format(budget.spent - budget.limit) }} over budget
+              {% else %}
+                ${{ "%.2f"|format(budget.remaining) }} remaining
+              {% endif %}
+            </div>
+          </div>
+          <div class="budget-actions">
+            <button class="btn-icon edit-budget-btn"
+                    data-category="{{ budget.category }}"
+                    data-limit="{{ budget.limit }}"
+                    title="Edit limit">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 2.828L11.828 15.828a2 2 0 01-1.414.586H8v-2.414a2 2 0 01.586-1.414z"/>
+              </svg>
+            </button>
+            <button class="btn-icon delete-budget-btn"
+                    data-budget-id="{{ budget.budget_id }}"
+                    data-category="{{ budget.category }}"
+                    title="Delete budget"
+                    style="color:#dc3545">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0a1 1 0 00-1-1h-4a1 1 0 00-1 1m-4 0h10"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="budget-progress">
+        <div class="progress-track">
+          <div class="progress-fill {{ budget.category|lower }}"
+               style="width:{% if budget.over_budget %}100{% else %}{{ budget.percentage }}{% endif %}%;
+                      background:{{ budget.color }}{% if budget.over_budget %};background:#dc3545{% endif %}">
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"
+         style="width:3rem;height:3rem;margin:0 auto;color:#adb5bd">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+    </svg>
+    <h3 style="margin-top:1rem;font-weight:600;color:#495057">No budgets set yet</h3>
+    <p>Click <strong>Add Category Budget</strong> to set your first spending limit.</p>
+  </div>
+  {% endif %}
 </div>
+
+<!-- Edit Budget Modal -->
+<div class="modal fade" id="editBudgetModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Budget Limit</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Category</label>
+          <input type="text" id="editCategory" class="form-control" readonly>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Monthly Budget Limit ($)</label>
+          <input type="number" id="editLimit" class="form-control" min="0.01" step="0.01" placeholder="e.g. 500">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="saveBudgetBtn">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Budget</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="addCategoryForm">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Category</label>
+            <select id="newCategory" class="form-control" required>
+              <option value="">Select a category</option>
+              <option value="Food">Food</option>
+              <option value="Transportation">Transportation</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Health">Health</option>
+              <option value="Software">Software</option>
+              <option value="Utilities">Utilities</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Monthly Budget Limit ($)</label>
+            <input type="number" id="newLimit" class="form-control" min="0.01" step="0.01" placeholder="e.g. 400" required>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="createBudgetBtn">Add Budget</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteBudgetModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Budget</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete the budget for <strong id="deleteCategoryName"></strong>?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+  <div id="liveToast" class="toast" role="alert">
+    <div class="toast-header">
+      <strong class="me-auto">Budget</strong>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block subpage_scripts %}
+<script src="/static/js/budget.js"></script>
+<script>
+// Delete budget handler
+let deleteModal = null;
+let deleteBudgetId = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.delete-budget-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      deleteBudgetId = btn.getAttribute('data-budget-id');
+      document.getElementById('deleteCategoryName').textContent = btn.getAttribute('data-category');
+      deleteModal = new bootstrap.Modal(document.getElementById('deleteBudgetModal'));
+      deleteModal.show();
+    });
+  });
+
+  document.getElementById('confirmDeleteBtn')?.addEventListener('click', async () => {
+    if (!deleteBudgetId) return;
+    const response = await fetch(`/budget/api/budgets/${deleteBudgetId}`, { method: 'DELETE' });
+    if (response.ok) {
+      if (deleteModal) deleteModal.hide();
+      showToast('Budget deleted.', 'success');
+      setTimeout(() => window.location.reload(), 800);
+    } else {
+      showToast('Failed to delete budget.', 'error');
+    }
+  });
+});
+</script>
 {% endblock %}
