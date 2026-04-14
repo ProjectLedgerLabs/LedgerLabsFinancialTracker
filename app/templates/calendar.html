@@ -14,17 +14,13 @@
             <p class="text-muted">Track spending and income by date</p>
         </div>
         <div class="month-navigation">
-            <a href="/calendar/?year={{ prev_year }}&month={{ prev_month }}" class="nav-btn">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                </svg>
-            </a>
+            <button class="nav-btn" id="prevMonth" type="button" title="Previous month">
+                <span class="material-symbols-outlined">chevron_left</span>
+            </button>
             <span class="current-month">{{ current_month_name }} {{ year }}</span>
-            <a href="/calendar/?year={{ next_year }}&month={{ next_month }}" class="nav-btn">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
-            </a>
+            <button class="nav-btn" id="nextMonth" type="button" title="Next month">
+                <span class="material-symbols-outlined">chevron_right</span>
+            </button>
         </div>
     </div>
 
@@ -102,4 +98,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block subpage_scripts %}
+<script src="/static/js/calendar.js"></script>
 {% endblock %}

@@ -224,6 +224,20 @@ body {
     grid-column: span 1;
 }
 
+#subscriptionsList {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+#subscriptionsList .subscription-card {
+    width: 100% !important;
+    min-width: 0;
+    flex: 1 1 100%;
+    align-self: stretch;
+}
+
 .subscription-card {
     background: var(--bg-card);
     border-radius: var(--radius-lg);
@@ -232,6 +246,11 @@ body {
     border: 1px solid var(--border-color);
     transition: all 0.3s ease;
     margin-bottom: 16px;
+}
+
+.subscription-card {
+    width: 100%;
+    display: block;
 }
 
 .subscription-card:hover {
@@ -246,6 +265,21 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.subscription-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.subscription-card .card-header > div:first-child {
+    flex: 1;
+}
+
+.subscription-actions {
+    flex-shrink: 0;
 }
 
 .card-header h5 {
@@ -393,6 +427,21 @@ body {
     color: var(--text-muted);
 }
 
+.upcoming-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+
+.upcoming-list {
+    width: 100%;
+}
+
+.upcoming-item > div:first-child {
+    flex: 1;
+}
 
 .card {
     border: none;

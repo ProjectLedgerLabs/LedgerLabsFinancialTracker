@@ -13,14 +13,13 @@
             <h1>Savings Goals</h1>
             <p class="text-muted">Track progress towards your financial goals</p>
         </div>
-        <button id="addGoalBtn" class="btn-primary">
+        <button id="addGoalBtn" class="btn-primary" type="button">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
             New Savings Goal
         </button>
     </div>
-
 
     <div class="stats-grid">
         <div class="stat-card">
@@ -51,48 +50,92 @@
         </div>
     </div>
 
-
     <div class="goals-grid">
-        {% for goal in goals %}
-        <div class="goal-card">
-            <div class="goal-header">
-                <div>
-                    <h3 class="goal-title">{{ goal.name }}</h3>
-                    <p class="goal-days">{{ goal.days_left }} days left</p>
+        {% if goals %}
+            {% for goal in goals %}
+            <div class="goal-card" data-goal-id="{{ goal.goal_id }}" data-goal-name="{{ goal.name }}" data-goal-current="{{ goal.current }}" data-goal-target="{{ goal.target }}">
+                <div class="goal-header">
+                    <div>
+                        <h3 class="goal-title">{{ goal.name }}</h3>
+                        <p class="goal-days">{{ goal.days_left }} days left</p>
+                    </div>
+                    <div class="goal-percentage">{{ "%.1f"|format((goal.current / goal.target) * 100 if goal.target > 0 else 0) }}%</div>
                 </div>
-                <div class="goal-percentage">{{ "%.1f"|format((goal.current / goal.target) * 100) }}%</div>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: {{ (goal.current / goal.target) * 100 }}%"></div>
-            </div>
-            <div class="goal-stats">
-                <div class="goal-amounts">
-                    <span>Current: <strong>${{ "%.2f"|format(goal.current) }}</strong></span>
-                    <span>Target: <strong>${{ "%.2f"|format(goal.target) }}</strong></span>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ ((goal.current / goal.target) * 100 if goal.target > 0 else 0) }}%"></div>
                 </div>
-                <div class="goal-remaining">
-                    Remaining: <strong>${{ "%.2f"|format(goal.target - goal.current) }}</strong>
+                <div class="goal-stats">
+                    <div class="goal-amounts">
+                        <span>Current: <strong>${{ "%.2f"|format(goal.current) }}</strong></span>
+                        <span>Target: <strong>${{ "%.2f"|format(goal.target) }}</strong></span>
+                    </div>
+                    <div class="goal-remaining">
+                        Remaining: <strong>${{ "%.2f"|format(goal.target - goal.current) }}</strong>
+                    </div>
+                </div>
+                {% if goal.description %}
+                <div class="goal-description">{{ goal.description }}</div>
+                {% endif %}
+                {% if goal.target_date %}
+                <div class="goal-meta">Deadline: {{ goal.target_date }}</div>
+                {% endif %}
+                <div class="goal-actions">
+                    <button class="btn-contribute" type="button">Contribute</button>
                 </div>
             </div>
-            <div class="goal-actions">
-                <button class="btn-contribute" data-goal="{{ goal.name }}" data-remaining="{{ goal.target - goal.current }}">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    Contribute
-                </button>
+            {% endfor %}
+        {% else %}
+            <div class="goal-card">
+                <div class="goal-header">
+                    <div>
+                        <h3 class="goal-title">No savings goals yet</h3>
+                        <p class="goal-days">Create one to get started</p>
+                    </div>
+                </div>
+                <div class="goal-stats">
+                    <div class="goal-remaining">Click "New Savings Goal" to add a goal and start tracking your progress.</div>
+                </div>
             </div>
-        </div>
-        {% endfor %}
+        {% endif %}
     </div>
 </div>
 
+<div id="newGoalModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>New Savings Goal</h3>
+            <button class="modal-close" type="button">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="goalName">Goal Name</label>
+                <input type="text" id="goalName" class="form-control" placeholder="Emergency fund" required>
+            </div>
+            <div class="form-group">
+                <label for="goalTarget">Target Amount</label>
+                <input type="number" id="goalTarget" class="form-control" step="0.01" placeholder="1000.00" required>
+            </div>
+            <div class="form-group">
+                <label for="goalDeadline">Deadline</label>
+                <input type="date" id="goalDeadline" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="goalDescription">Description</label>
+                <textarea id="goalDescription" class="form-control" rows="3" placeholder="Reason for saving..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary modal-cancel" type="button">Cancel</button>
+            <button class="btn-primary" id="saveGoalBtn" type="button">Save Goal</button>
+        </div>
+    </div>
+</div>
 
 <div id="contributeModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
             <h3>Contribute to Goal</h3>
-            <button class="modal-close">&times;</button>
+            <button class="modal-close" type="button">&times;</button>
         </div>
         <div class="modal-body">
             <div class="form-group">
@@ -106,103 +149,21 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn-secondary modal-cancel">Cancel</button>
-            <button class="btn-primary" id="confirmContributeBtn">Contribute</button>
+            <button class="btn-secondary modal-cancel" type="button">Cancel</button>
+            <button class="btn-primary" id="confirmContributeBtn" type="button">Contribute</button>
         </div>
     </div>
 </div>
 
-
 <div id="toast" class="toast">
     <div class="toast-header">
         <strong id="toastTitle">Notification</strong>
-        <button class="toast-close">&times;</button>
+        <button class="toast-close" type="button">&times;</button>
     </div>
     <div class="toast-body" id="toastMessage"></div>
 </div>
+{% endblock %}
 
-<script>
-    const contributeModal = document.getElementById('contributeModal');
-    let currentGoal = '';
-    let currentRemaining = 0;
-    
-    function showToast(message, type = 'success') {
-        const toast = document.getElementById('toast');
-        const toastBody = document.getElementById('toastMessage');
-        const toastTitle = document.getElementById('toastTitle');
-        const toastHeader = toast.querySelector('.toast-header');
-        
-        toastTitle.textContent = type === 'success' ? 'Success' : 'Error';
-        toastBody.textContent = message;
-        
-        if (type === 'success') {
-            toastHeader.style.backgroundColor = '#388026';
-        } else {
-            toastHeader.style.backgroundColor = '#e57373';
-        }
-        toastHeader.style.color = 'white';
-        
-        toast.classList.add('show');
-        
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => {
-                toastHeader.style.backgroundColor = '';
-                toastHeader.style.color = '';
-            }, 300);
-        }, 3000);
-    }
-    
-    document.querySelectorAll('.btn-contribute').forEach(btn => {
-        btn.addEventListener('click', () => {
-            currentGoal = btn.getAttribute('data-goal');
-            currentRemaining = parseFloat(btn.getAttribute('data-remaining'));
-            document.getElementById('contributeGoalName').value = currentGoal;
-            document.getElementById('remainingHint').textContent = `Remaining: $${currentRemaining.toFixed(2)}`;
-            document.getElementById('contributeAmount').value = '';
-            contributeModal.classList.add('show');
-        });
-    });
-    
-    document.querySelector('.modal-close')?.addEventListener('click', () => {
-        contributeModal.classList.remove('show');
-    });
-    
-    document.querySelector('.modal-cancel')?.addEventListener('click', () => {
-        contributeModal.classList.remove('show');
-    });
-    
-    contributeModal.addEventListener('click', (e) => {
-        if (e.target === contributeModal) {
-            contributeModal.classList.remove('show');
-        }
-    });
-    
-    document.getElementById('confirmContributeBtn')?.addEventListener('click', async () => {
-        const amount = parseFloat(document.getElementById('contributeAmount').value);
-        
-        if (isNaN(amount) || amount <= 0) {
-            showToast('Please enter a valid amount', 'error');
-            return;
-        }
-        
-        if (amount > currentRemaining) {
-            showToast('Amount exceeds remaining goal', 'error');
-            return;
-        }
-        
-        const response = await fetch('/savings/api/contribute', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ goal_name: currentGoal, amount: amount })
-        });
-        
-        if (response.ok) {
-            showToast(`Successfully contributed $${amount.toFixed(2)} to ${currentGoal}!`, 'success');
-            setTimeout(() => window.location.reload(), 1500);
-        } else {
-            showToast('Failed to contribute', 'error');
-        }
-    });
-</script>
+{% block subpage_scripts %}
+<script src="/static/js/savings.js"></script>
 {% endblock %}

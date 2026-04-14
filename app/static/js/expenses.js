@@ -11,10 +11,23 @@ const categoryColors = {
     'Utilities': '#ffcc00'
 };
 
+// Initialize sidebar toggle fallback
+function initSidebarToggleFallback() {
+    if (window.__sidebarToggleAttached) return;
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+    if (menuToggle && sidebar) {
+        menuToggle.addEventListener('click', function () {
+            sidebar.classList.toggle('collapsed');
+        });
+        window.__sidebarToggleAttached = true;
+    }
+}
+
 // Initialize page
 async function init() {
+    initSidebarToggleFallback();
     await getUserInfo();
-    initSidebar();
     initModal();
     await loadExpenses();
 }
@@ -29,16 +42,6 @@ async function getUserInfo() {
         }
     } catch (error) {
         console.error('Error fetching user:', error);
-    }
-}
-
-// Initialize sidebar toggle
-function initSidebar() {
-    const toggleBtn = document.getElementById('menu-toggle');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-            document.getElementById('sidebar').classList.toggle('collapsed');
-        });
     }
 }
 

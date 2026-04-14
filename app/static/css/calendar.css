@@ -70,6 +70,9 @@
     justify-content: center;
     transition: all 0.2s;
     color: var(--text-secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
 }
 
 .nav-btn:hover {

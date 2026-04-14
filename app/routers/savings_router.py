@@ -1,88 +1,98 @@
 from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import HTMLResponse
-from typing import Dict, List
 from pydantic import BaseModel
+from typing import Optional
 from datetime import datetime
 from app.routers import templates
 from app.dependencies.auth import AuthDep
+from app.dependencies.session import SessionDep
 from app.utilities.flash import get_flashed_messages
+from app.repositories.savings import SavingsRepository
 
 router = APIRouter(prefix="/savings", tags=["savings"])
 
+
+class SavingsGoalCreate(BaseModel):
+    name: str
+    target_amount: float
+    target_date: Optional[str] = None
+    description: Optional[str] = None
+
+
 class SavingsContribution(BaseModel):
-    goal_name: str
+    goal_id: int
     amount: float
 
-class SavingsService:
-    def __init__(self):
-        self.savings_goals = [
-            {"name": "Emergency Fund", "current": 6500.00, "target": 10000.00, "target_date": "2026-12-31"},
-            {"name": "Vacation", "current": 1200.00, "target": 3000.00, "target_date": "2026-08-15"},
-            {"name": "New Laptop", "current": 1850.00, "target": 2500.00, "target_date": "2026-06-30"}
-        ]
-    
-    def get_all_goals(self) -> List[Dict]:
-        today = datetime.now().date()
-        for goal in self.savings_goals:
-            target_date = datetime.strptime(goal["target_date"], "%Y-%m-%d").date()
-            goal["days_left"] = max(0, (target_date - today).days)
-        return self.savings_goals
-    
-    def get_total_saved(self) -> float:
-        return sum(goal["current"] for goal in self.savings_goals)
-    
-    def get_total_target(self) -> float:
-        return sum(goal["target"] for goal in self.savings_goals)
-    
-    def get_overall_progress(self) -> float:
-        total_saved = self.get_total_saved()
-        total_target = self.get_total_target()
-        return round((total_saved / total_target) * 100, 1) if total_target > 0 else 0
-    
-    def contribute_to_goal(self, goal_name: str, amount: float) -> Dict:
-        for goal in self.savings_goals:
-            if goal["name"] == goal_name:
-                goal["current"] += amount
-                return {"success": True, "goal": goal}
-        return {"success": False, "error": "Goal not found"}
 
-savings_service = SavingsService()
+# ------------------------------------------------------------------ #
+#  Page route                                                          #
+# ------------------------------------------------------------------ #
 
-# Page Route
 @router.get("/", response_class=HTMLResponse)
-async def savings_page(request: Request, user: AuthDep):
-    goals = savings_service.get_all_goals()
-    total_saved = savings_service.get_total_saved()
-    total_target = savings_service.get_total_target()
-    overall_progress = savings_service.get_overall_progress()
-    
+async def savings_page(request: Request, user: AuthDep, db: SessionDep):
+    repo = SavingsRepository(db)
+    goals = repo.get_all(user.user_id)
+    total_saved = repo.get_total_saved(user.user_id)
+    total_target = repo.get_total_target(user.user_id)
+    overall_progress = repo.get_overall_progress(user.user_id)
+
     return templates.TemplateResponse(
-        request=request,
-        name="savings.html",
+        request=request, name="savings.html",
         context={
             "flash_messages": get_flashed_messages(request),
-            "user": user,
-            "active_page": "savings",
-            "goals": goals,
-            "total_saved": total_saved,
-            "total_target": total_target,
-            "overall_progress": overall_progress,
-        }
+            "user": user, "active_page": "savings",
+            "goals": goals, "total_saved": total_saved,
+            "total_target": total_target, "overall_progress": overall_progress,
+        },
     )
 
-# API Routes
-@router.post("/api/contribute")
-async def contribute(contribution: SavingsContribution):
-    result = savings_service.contribute_to_goal(contribution.goal_name, contribution.amount)
-    if result["success"]:
-        return result
-    raise HTTPException(status_code=404, detail="Goal not found")
+
+# ------------------------------------------------------------------ #
+#  API routes                                                          #
+# ------------------------------------------------------------------ #
+
+@router.get("/api/goals")
+async def get_goals(user: AuthDep, db: SessionDep):
+    return {"goals": SavingsRepository(db).get_all(user.user_id)}
 
 
 @router.get("/api/summary")
-async def get_savings_summary():
+async def get_savings_summary(user: AuthDep, db: SessionDep):
+    repo = SavingsRepository(db)
     return {
-        "total_saved": savings_service.get_total_saved(),
-        "total_target": savings_service.get_total_target(),
-        "overall_progress": savings_service.get_overall_progress()
+        "total_saved": repo.get_total_saved(user.user_id),
+        "total_target": repo.get_total_target(user.user_id),
+        "overall_progress": repo.get_overall_progress(user.user_id),
     }
+
+
+@router.post("/api/goals/add")
+async def add_goal(goal: SavingsGoalCreate, user: AuthDep, db: SessionDep):
+    try:
+        deadline = datetime.strptime(goal.target_date, "%Y-%m-%d") if goal.target_date else None
+        result = SavingsRepository(db).create(
+            user_id=user.user_id,
+            name=goal.name,
+            target_amount=goal.target_amount,
+            deadline=deadline,
+            description=goal.description,
+        )
+        return {"success": True, "goal": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/api/contribute")
+async def contribute(contribution: SavingsContribution, user: AuthDep, db: SessionDep):
+    result = SavingsRepository(db).contribute(contribution.goal_id, user.user_id, contribution.amount)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Goal not found")
+    return {"success": True, "goal": result}
+
+
+@router.delete("/api/goals/{goal_id}")
+async def delete_goal(goal_id: int, user: AuthDep, db: SessionDep):
+    deleted = SavingsRepository(db).delete(goal_id, user.user_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Goal not found")
+    return {"success": True}

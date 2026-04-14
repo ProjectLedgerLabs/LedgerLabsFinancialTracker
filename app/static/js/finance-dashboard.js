@@ -16,14 +16,7 @@
       { name: 'Internet bill', category: 'Utilities', amount: 80.00, date: '2026-04-01' },
       { name: 'Electric bill', category: 'Utilities', amount: 100.00, date: '2026-04-02' }
     ],
-    budgets: {
-      Food: { limit: 600, spent: 258.57 },
-      Transportation: { limit: 300, spent: 65.00 },
-      Entertainment: { limit: 200, spent: 34.00 },
-      Health: { limit: 150, spent: 49.99 },
-      Software: { limit: 100, spent: 30.98 },
-      Utilities: { limit: 200, spent: 180.00 }
-    },
+    budgets: [], // Will be loaded from API
     subscriptions: [
       { name: 'Netflix', amount: 15.99, nextBilling: '2026-05-01', category: 'Entertainment' },
       { name: 'Spotify', amount: 9.99, nextBilling: '2026-05-01', category: 'Entertainment' },
@@ -140,7 +133,18 @@
     });
   }
 
-  function renderExpenses(containerId, expensesList) {
+  function loadBudgets() {
+    return fetch('/finance/api/budgets')
+      .then(response => response.json())
+      .then(data => {
+        state.budgets = data.budgets || [];
+        return state.budgets;
+      })
+      .catch(error => {
+        console.error('Failed to load budgets:', error);
+        return [];
+      });
+  }
     const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = '';
@@ -168,13 +172,12 @@
     const container = document.getElementById('budgetOverview');
     if (!container) return;
     container.innerHTML = '';
-    Object.keys(state.budgets).forEach(category => {
-      const budget = state.budgets[category];
-      const percentage = Math.min((budget.spent / budget.limit) * 100, 100);
-      const colorClass = getProgressColorClass(category);
+    state.budgets.forEach(budget => {
+      const percentage = Math.min(budget.percentage, 100);
+      const colorClass = getProgressColorClass(budget.category);
       const item = document.createElement('div');
       item.className = 'budget-item';
-      item.innerHTML = `<div class="budget-item__header"><span class="budget-item__label">${category}</span><span class="budget-item__amount">$${budget.spent.toFixed(2)} / $${budget.limit.toFixed(2)}</span></div><div class="progress-bar"><div class="progress-bar__fill ${colorClass}" style="width: ${percentage}%"></div></div>`;
+      item.innerHTML = `<div class="budget-item__header"><span class="budget-item__label">${budget.category}</span><span class="budget-item__amount">$${budget.spent.toFixed(2)} / $${budget.limit.toFixed(2)}</span></div><div class="progress-bar"><div class="progress-bar__fill ${colorClass}" style="width: ${percentage}%"></div></div>`;
       container.appendChild(item);
     });
   }
@@ -251,7 +254,8 @@
     container.scrollTop = container.scrollHeight;
   }
 
-  function init() {
+  async function init() {
+    await loadBudgets();
     updateDashboardStats();
     initIncomeExpensesChart();
     initCategoryChart();
